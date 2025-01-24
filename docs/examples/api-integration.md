@@ -18,7 +18,7 @@ This workflow:
 ## Configuration
 
 ```yaml
-# ploston-config.yaml
+# ael-config.yaml
 tools:
   mcp_servers:
     fetch:

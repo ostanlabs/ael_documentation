@@ -45,7 +45,7 @@ services:
       - "8082:8082"
     volumes:
       - ./workflows:/app/workflows
-      - ./ploston-config.yaml:/app/ploston-config.yaml
+      - ./ael-config.yaml:/app/ael-config.yaml
     environment:
       - PLOSTON_LOG_LEVEL=INFO
 ```
@@ -97,7 +97,7 @@ When Ploston finds a valid configuration file, it starts in **running mode** wit
 ```bash
 ploston serve
 # Output:
-# [Ploston] Config loaded from: ./ploston-config.yaml
+# [Ploston] Config loaded from: ./ael-config.yaml
 # [Ploston] Mode: running
 # [Ploston] Workflows: 5 registered
 ```
@@ -109,7 +109,7 @@ When no configuration file exists, Ploston starts in **configuration mode**:
 ```bash
 ploston serve
 # Output:
-# [Ploston] No config found (searched: ./ploston-config.yaml, ~/.ploston/config.yaml)
+# [Ploston] No config found (searched: ./ael-config.yaml, ~/.ploston/config.yaml)
 # [Ploston] Mode: configuration
 # [Ploston] Use config tools to set up Ploston
 ```
@@ -135,7 +135,7 @@ ploston serve --mode running
 
 ## Creating a Configuration File
 
-Create `ploston-config.yaml` in your project directory:
+Create `ael-config.yaml` in your project directory:
 
 ```yaml
 workflows:

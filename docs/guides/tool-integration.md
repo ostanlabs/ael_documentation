@@ -41,7 +41,7 @@ MCP (Model Context Protocol) servers provide tools via a standardized protocol.
 
 ### Configuring MCP Servers
 
-Add MCP servers to your `ploston-config.yaml`:
+Add MCP servers to your `ael-config.yaml`:
 
 ```yaml
 tools:
@@ -266,7 +266,7 @@ if __name__ == "__main__":
     mcp.run()
 ```
 
-Configure in `ploston-config.yaml`:
+Configure in `ael-config.yaml`:
 
 ```yaml
 tools:

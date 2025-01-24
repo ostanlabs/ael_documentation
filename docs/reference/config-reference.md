@@ -7,8 +7,8 @@ Complete reference for Ploston configuration options.
 Ploston searches for configuration in this order (first found wins):
 
 1. **CLI flag:** `--config ./path/to/config.yaml`
-2. **Environment variable:** `PLOSTON_CONFIG_PATH=/path/to/config.yaml`
-3. **Current directory:** `./ploston-config.yaml`
+2. **Environment variable:** `AEL_CONFIG_PATH=/path/to/config.yaml`
+3. **Current directory:** `./ael-config.yaml`
 4. **User home:** `~/.ploston/config.yaml`
 
 ## Configuration Modes

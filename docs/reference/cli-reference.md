@@ -65,7 +65,7 @@ ploston serve --mode running
 
 When config is found (running mode):
 ```
-[Ploston] Config loaded from: ./ploston-config.yaml
+[Ploston] Config loaded from: ./ael-config.yaml
 [Ploston] Mode: running
 [Ploston] MCP servers: filesystem, github (2)
 [Ploston] Workflows: 5 registered
@@ -73,7 +73,7 @@ When config is found (running mode):
 
 When no config found (configuration mode):
 ```
-[Ploston] No config found (searched: ./ploston-config.yaml, ~/.ploston/config.yaml)
+[Ploston] No config found (searched: ./ael-config.yaml, ~/.ploston/config.yaml)
 [Ploston] Mode: configuration
 [Ploston] Use config tools to set up Ploston
 ```

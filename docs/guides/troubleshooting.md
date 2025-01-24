@@ -83,14 +83,14 @@ uv sync
 **Solution:**
 
 Ploston searches for config in this order:
-1. `PLOSTON_CONFIG_PATH` environment variable
-2. `./ploston-config.yaml` (current directory)
+1. `AEL_CONFIG_PATH` environment variable
+2. `./ael-config.yaml` (current directory)
 3. `~/.ploston/config.yaml` (home directory)
 
 Create a minimal config:
 
 ```bash
-cat > ploston-config.yaml << EOF
+cat > ael-config.yaml << EOF
 workflows:
   directory: "./workflows"
 EOF
@@ -108,10 +108,10 @@ mkdir -p workflows
 
 ```bash
 # Check if config exists
-ls -la ploston-config.yaml
+ls -la ael-config.yaml
 
 # Verify config is valid YAML
-python -c "import yaml; yaml.safe_load(open('ploston-config.yaml'))"
+python -c "import yaml; yaml.safe_load(open('ael-config.yaml'))"
 
 # Force running mode (will fail if no config)
 ploston serve --mode running
@@ -125,7 +125,7 @@ ploston serve --mode running
 
 ```bash
 # Check YAML syntax
-python -c "import yaml; yaml.safe_load(open('ploston-config.yaml'))"
+python -c "import yaml; yaml.safe_load(open('ael-config.yaml'))"
 
 # Validate with Ploston
 ploston config show

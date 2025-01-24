@@ -226,7 +226,7 @@ Step-level config     (highest priority)
       ↓
 Workflow defaults
       ↓
-System config (ploston-config.yaml)
+System config (ael-config.yaml)
       ↓
 Hardcoded defaults    (lowest priority)
 ```

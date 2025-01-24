@@ -20,7 +20,7 @@ mkdir my-ploston-project
 cd my-ploston-project
 ```
 
-Create `ploston-config.yaml`:
+Create `ael-config.yaml`:
 
 ```yaml
 workflows:

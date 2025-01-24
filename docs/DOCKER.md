@@ -84,10 +84,10 @@ docker build -t native-tools:latest -f docker/native-tools/Dockerfile .
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `PLOSTON_HOST` | Bind host | `0.0.0.0` |
-| `PLOSTON_PORT` | HTTP port | `8080` |
+| `AEL_HOST` | Bind host | `0.0.0.0` |
+| `AEL_PORT` | HTTP port | `8080` |
 | `PLOSTON_TRANSPORT` | Transport type | `http` |
-| `PLOSTON_CONFIG` | Config file path | `/app/config/ploston-config.yaml` |
+| `AEL_CONFIG` | Config file path | `/app/config/ael-config.yaml` |
 | `PLOSTON_TELEMETRY_ENABLED` | Enable telemetry | `true` |
 | `PLOSTON_METRICS_ENABLED` | Enable Prometheus metrics | `true` |
 | `PLOSTON_TRACES_ENABLED` | Enable distributed tracing | `true` |
