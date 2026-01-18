@@ -2,195 +2,298 @@
 
 Complete reference for AEL configuration options.
 
-## Configuration File
+## Configuration File Location
 
-AEL looks for configuration in these locations (in order):
+AEL searches for configuration in this order (first found wins):
 
-1. Path specified with `--config` CLI option
-2. `./ael-config.yaml` (current directory)
-3. `~/.config/ael/config.yaml` (user config)
-4. `/etc/ael/config.yaml` (system config)
+1. **CLI flag:** `--config ./path/to/config.yaml`
+2. **Environment variable:** `AEL_CONFIG_PATH=/path/to/config.yaml`
+3. **Current directory:** `./ael-config.yaml`
+4. **User home:** `~/.ael/config.yaml`
 
-## Configuration Sections
+## Configuration Modes
 
-### `mcp` - MCP Server Configuration
+### Running Mode
+
+When AEL finds a valid configuration file, it starts in **running mode** with full functionality.
+
+### Configuration Mode
+
+When no configuration file exists, AEL starts in **configuration mode** with limited tools for initial setup:
+
+| Tool | Description |
+|------|-------------|
+| `config_get` | Read current staged configuration |
+| `config_set` | Stage configuration changes |
+| `config_validate` | Validate staged configuration |
+| `config_done` | Write config to disk and switch to running mode |
+| `config_location` | Get/set config file location |
+
+Force a specific mode:
+
+```bash
+uv run ael serve --mode configuration  # Force config mode
+uv run ael serve --mode running        # Force running mode (fails if no config)
+```
+
+## Complete Configuration Schema
 
 ```yaml
+# ═══════════════════════════════════════════════════════════════
+# AEL CONFIGURATION FILE
+# ═══════════════════════════════════════════════════════════════
+
+# Server settings
+server:
+  name: "ael"                    # Server name for MCP
+  version: "0.1.0"               # Server version
+
+# MCP server connections
 mcp:
-  enabled: true                    # Enable MCP server
-  transport: stdio                 # Transport: stdio | http
-  
-  exposure:
-    workflows: true                # Expose workflows as MCP tools
-    tools: true                    # Expose tools via MCP
-  
-  http:
-    host: "0.0.0.0"               # HTTP host
-    port: 8080                     # HTTP port
-    cors_origins: ["*"]            # CORS allowed origins
-    tls:
-      enabled: false               # Enable TLS
-      cert_file: ""                # TLS certificate file
-      key_file: ""                 # TLS key file
-```
-
-### `tools` - Tool Configuration
-
-```yaml
-tools:
-  mcp_servers:
-    # MCP server definitions
+  servers:
+    # Example: Filesystem server
     filesystem:
-      command: "npx"               # Command to spawn (stdio)
+      command: "npx"
       args: ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
-      env: {}                      # Environment variables
-      timeout: 30                  # Connection timeout (seconds)
+      env: {}
     
-    # HTTP MCP server example
-    remote-server:
-      url: "http://localhost:8081/mcp"  # Server URL (http)
-      transport: http              # Transport type
-      timeout: 30
+    # Example: Custom server
+    # my-server:
+    #   command: "python"
+    #   args: ["-m", "my_mcp_server"]
+    #   env:
+    #     API_KEY: "${MY_API_KEY}"
+
+# Tool configuration
+tools:
+  # Built-in tools to enable
+  builtins:
+    - python_exec
   
-  system_tools:
-    python_exec_enabled: true      # Enable python_exec tool
-```
+  # MCP servers to connect (references mcp.servers)
+  mcp_servers:
+    filesystem:
+      command: "npx"
+      args: ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
 
-### `workflows` - Workflow Configuration
-
-```yaml
+# Workflow settings
 workflows:
-  directory: "./workflows"         # Workflow files directory
-  watch: true                      # Watch for file changes
-```
-
-### `execution` - Execution Configuration
-
-```yaml
-execution:
-  default_timeout: 300             # Default workflow timeout (seconds)
-  step_timeout: 30                 # Default step timeout (seconds)
-  max_steps: 100                   # Maximum steps per workflow
+  # Directory containing workflow YAML files
+  directory: "./workflows"
   
+  # Auto-reload on file changes
+  hot_reload: true
+
+# Execution settings
+execution:
+  # Maximum concurrent workflow executions
+  max_concurrent: 10
+  
+  # Default timeout in seconds
+  default_timeout: 300
+  
+  # Retry configuration
   retry:
-    max_attempts: 3                # Maximum retry attempts
-    initial_delay: 1.0             # Initial delay (seconds)
-    max_delay: 30.0                # Maximum delay (seconds)
-    backoff_multiplier: 2.0        # Exponential backoff multiplier
-```
+    max_attempts: 3
+    backoff_multiplier: 2.0
 
-### `python_exec` - Python Execution Configuration
-
-```yaml
+# Python execution sandbox
 python_exec:
-  timeout: 30                      # Code execution timeout (seconds)
-  max_tool_calls: 10               # Max tool calls per execution
-  default_imports:                 # Auto-imported modules
+  # Timeout for code execution (seconds)
+  timeout: 30
+  
+  # Maximum memory (bytes)
+  max_memory: 536870912  # 512MB
+  
+  # Allowed imports
+  allowed_imports:
     - json
     - re
     - datetime
-  
-  packages:
-    default_profile: standard      # Package profile: minimal | standard | data_science
-```
+    - math
+    - collections
+    - itertools
+    - functools
 
-### `logging` - Logging Configuration
-
-```yaml
+# Logging configuration
 logging:
-  level: INFO                      # Log level: DEBUG | INFO | WARNING | ERROR
-  format: colored                  # Format: colored | json
+  # Log level: DEBUG, INFO, WARNING, ERROR
+  level: INFO
   
+  # Log format: text or json
+  format: text
+  
+  # Component-specific logging
   components:
-    workflow: true                 # Log workflow events
-    step: true                     # Log step events
-    tool: true                     # Log tool events
-    sandbox: true                  # Log sandbox events
+    workflow: true
+    step: true
+    tool: true
+    sandbox: true
   
+  # Output options
   options:
-    show_params: true              # Show parameters in logs
-    show_results: true             # Show results in logs
-    truncate_at: 200               # Truncate long values
-```
+    show_params: false
+    show_results: false
+    truncate_at: 1000
 
-### `plugins` - Plugin Configuration
-
-```yaml
-plugins:
-  - name: logging                  # Plugin name
-    type: builtin                  # Type: builtin | file | package
-    priority: 50                   # Execution priority (lower = earlier)
-    enabled: true                  # Enable/disable plugin
-    config: {}                     # Plugin-specific config
-  
-  - name: custom-plugin
-    type: file
-    path: "./plugins/custom.py"    # Path to plugin file
-    priority: 100
-```
-
-### `security` - Security Configuration
-
-```yaml
+# Security settings
 security:
-  require_auth: false              # Require API authentication
+  # Allowed hosts for HTTP requests
+  allowed_hosts: []
   
-  api_keys:
-    - name: "default"              # Key name
-      key: "${API_KEY}"            # Key value (use env var)
-      scopes:                      # Allowed scopes
-        - read
-        - write
-        - execute
-```
+  # Blocked hosts
+  blocked_hosts: []
 
-### `telemetry` - Telemetry Configuration
-
-```yaml
+# Telemetry (optional)
 telemetry:
-  enabled: true                    # Enable telemetry
-  service_name: "ael"              # Service name for traces
-  service_version: "1.0.0"         # Service version
-  
-  storage:
-    type: memory                   # Storage: memory | file | postgres
-  
-  metrics:
-    enabled: true                  # Enable metrics
-    prometheus_enabled: true       # Expose /metrics endpoint
-  
-  tracing:
-    enabled: false                 # Enable tracing
-    sample_rate: 1.0               # Sampling rate (0.0-1.0)
-    export_to_otlp: false          # Export to OTLP collector
-  
-  logging:
-    enabled: false                 # Enable OTEL logging
-    export_to_otlp: false          # Export logs to OTLP
-    include_trace_context: true    # Include trace IDs in logs
-  
-  export:
-    otlp:
-      enabled: false               # Enable OTLP export
-      endpoint: "http://localhost:4317"  # OTLP endpoint
-      insecure: true               # Use insecure connection
-      protocol: grpc               # Protocol: grpc | http
-      headers: {}                  # Auth headers
+  enabled: false
+  endpoint: ""
 ```
 
-## Environment Variables
+## Configuration Sections
 
-Use `${VAR_NAME}` syntax to reference environment variables:
+### `server`
+
+Server identification for MCP protocol.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `name` | string | `"ael"` | Server name |
+| `version` | string | `"0.1.0"` | Server version |
+
+### `mcp`
+
+MCP server connections.
 
 ```yaml
-tools:
-  mcp_servers:
-    api-server:
+mcp:
+  servers:
+    server-name:
+      command: "executable"
+      args: ["arg1", "arg2"]
       env:
-        API_KEY: "${MY_API_KEY}"
+        VAR: "value"
 ```
 
-## Complete Example
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `command` | string | Yes | Executable to run |
+| `args` | list | No | Command arguments |
+| `env` | object | No | Environment variables |
 
-See [examples/ael-config.yaml](https://github.com/ostanlabs/agent-execution-layer/blob/main/examples/ael-config.yaml) for a complete example.
+### `tools`
 
+Tool configuration.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `builtins` | list | `["python_exec"]` | Built-in tools to enable |
+| `mcp_servers` | object | `{}` | MCP server definitions |
+
+### `workflows`
+
+Workflow settings.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `directory` | string | `"./workflows"` | Workflow files directory |
+| `hot_reload` | bool | `true` | Auto-reload on changes |
+
+### `execution`
+
+Execution settings.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `max_concurrent` | int | `10` | Max concurrent executions |
+| `default_timeout` | int | `300` | Default timeout (seconds) |
+| `retry.max_attempts` | int | `3` | Max retry attempts |
+| `retry.backoff_multiplier` | float | `2.0` | Backoff multiplier |
+
+### `python_exec`
+
+Python sandbox settings.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `timeout` | int | `30` | Execution timeout (seconds) |
+| `max_memory` | int | `536870912` | Max memory (bytes) |
+| `allowed_imports` | list | See above | Allowed Python imports |
+
+### `logging`
+
+Logging configuration.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `level` | string | `"INFO"` | Log level |
+| `format` | string | `"text"` | Output format |
+| `components.*` | bool | `true` | Component logging |
+| `options.show_params` | bool | `false` | Show parameters |
+| `options.show_results` | bool | `false` | Show results |
+| `options.truncate_at` | int | `1000` | Truncate long values |
+
+## Environment Variable Substitution
+
+Use `${VAR}` syntax for environment variables:
+
+```yaml
+mcp:
+  servers:
+    github:
+      command: "npx"
+      args: ["-y", "@modelcontextprotocol/server-github"]
+      env:
+        GITHUB_TOKEN: "${GITHUB_TOKEN}"
+```
+
+### Syntax Options
+
+| Syntax | Description |
+|--------|-------------|
+| `${VAR}` | Required variable (error if unset) |
+| `${VAR:-default}` | Use default if unset |
+| `${VAR:?message}` | Custom error message if unset |
+
+## Example Configurations
+
+### Minimal Configuration
+
+```yaml
+workflows:
+  directory: "./workflows"
+```
+
+### Development Configuration
+
+```yaml
+workflows:
+  directory: "./workflows"
+  hot_reload: true
+
+logging:
+  level: DEBUG
+  options:
+    show_params: true
+    show_results: true
+```
+
+### Production Configuration
+
+```yaml
+workflows:
+  directory: "/app/workflows"
+  hot_reload: false
+
+execution:
+  max_concurrent: 50
+  default_timeout: 600
+
+logging:
+  level: WARNING
+  format: json
+
+security:
+  allowed_hosts:
+    - "api.example.com"
+```

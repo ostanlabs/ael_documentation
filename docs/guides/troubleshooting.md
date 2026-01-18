@@ -1,270 +1,357 @@
 # Troubleshooting Guide
 
-Solutions to common AEL issues.
+Common issues and solutions when using AEL.
 
 ## Installation Issues
 
-### Command Not Found
+### "Command not found: ael"
 
+**Problem:** After running `uv sync`, the `ael` command is not found.
+
+**Solution:** Use one of these methods to run the CLI:
+
+```bash
+# Option 1: Use uv run (recommended)
+uv run ael --help
+
+# Option 2: Activate virtual environment
+source .venv/bin/activate
+ael --help
+
+# Option 3: Direct path
+.venv/bin/ael --help
 ```
-zsh: command not found: ael
+
+### "Python 3.12+ required"
+
+**Problem:** AEL requires Python 3.12 or higher.
+
+**Solution:**
+
+```bash
+# Check your Python version
+python --version
+
+# Install Python 3.12 using pyenv
+pyenv install 3.12
+pyenv local 3.12
+
+# Or use uv to manage Python
+uv python install 3.12
 ```
 
-**Solutions:**
-1. Ensure AEL is installed: `pip install ael`
-2. Check PATH includes pip bin directory
-3. Try: `python -m ael --version`
+### "uv: command not found"
 
-### Import Errors
+**Problem:** uv package manager is not installed.
 
+**Solution:**
+
+```bash
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Add to PATH (if needed)
+export PATH="$HOME/.local/bin:$PATH"
+
+# Verify installation
+uv --version
 ```
-ModuleNotFoundError: No module named 'ael'
-```
 
-**Solutions:**
-1. Verify installation: `pip show ael`
-2. Check Python version (requires 3.11+)
-3. Reinstall: `pip install --force-reinstall ael`
+### "uv sync failed"
+
+**Problem:** Dependencies failed to install.
+
+**Solution:**
+
+```bash
+# Clear cache and retry
+uv cache clean
+uv sync
+
+# If still failing, check Python version
+uv python list
+uv python install 3.12
+uv sync
+```
 
 ## Configuration Issues
 
-### Config File Not Found
+### "No config found"
 
+**Problem:** AEL cannot find configuration file.
+
+**Solution:**
+
+AEL searches for config in this order:
+1. `AEL_CONFIG_PATH` environment variable
+2. `./ael-config.yaml` (current directory)
+3. `~/.ael/config.yaml` (home directory)
+
+Create a minimal config:
+
+```bash
+cat > ael-config.yaml << EOF
+workflows:
+  directory: "./workflows"
+EOF
+
+mkdir -p workflows
 ```
-Error: Configuration file not found
+
+### "Configuration mode" instead of "Running mode"
+
+**Problem:** AEL starts in configuration mode when you expect running mode.
+
+**Cause:** No valid config file found.
+
+**Solution:**
+
+```bash
+# Check if config exists
+ls -la ael-config.yaml
+
+# Verify config is valid YAML
+python -c "import yaml; yaml.safe_load(open('ael-config.yaml'))"
+
+# Force running mode (will fail if no config)
+uv run ael serve --mode running
 ```
 
-**Solutions:**
-1. Create config: `ael config show > ael-config.yaml`
-2. Specify path: `ael --config /path/to/config.yaml`
-3. Check current directory for `ael-config.yaml`
+### "Invalid configuration"
 
-### Invalid Configuration
+**Problem:** Config file has syntax or validation errors.
 
+**Solution:**
+
+```bash
+# Check YAML syntax
+python -c "import yaml; yaml.safe_load(open('ael-config.yaml'))"
+
+# Validate with AEL
+uv run ael config show
 ```
-Error: CONFIG_INVALID - Invalid configuration
-```
 
-**Solutions:**
-1. Validate YAML syntax
-2. Check required fields
-3. View current config: `ael config show`
-4. See [Configuration Reference](../reference/config-reference.md)
+Common config errors:
+- Indentation issues (use spaces, not tabs)
+- Missing required fields
+- Invalid enum values
 
 ## Workflow Issues
 
-### Workflow Not Found
+### "Workflow validation failed"
 
-```
-Error: WORKFLOW_NOT_FOUND - Workflow 'my-workflow' not found
-```
+**Problem:** Workflow YAML has errors.
 
-**Solutions:**
-1. List workflows: `ael workflows list`
-2. Check workflows directory in config
-3. Verify file exists and has `.yaml` extension
-4. Check workflow `name` field matches
-
-### Validation Errors
-
-```
-Error: Workflow validation failed
-```
-
-**Solutions:**
-1. Validate workflow: `ael validate workflow.yaml`
-2. Check required fields: `name`, `version`, `steps`
-3. Verify step IDs are unique
-4. Check `depends_on` references valid steps
-
-### Circular Dependency
-
-```
-Error: CIRCULAR_DEPENDENCY - Circular dependency detected
-```
-
-**Solutions:**
-1. Review `depends_on` relationships
-2. Draw dependency graph
-3. Remove circular references
-4. Use sequential steps without `depends_on`
-
-## Tool Issues
-
-### Tool Unavailable
-
-```
-Error: TOOL_UNAVAILABLE - Tool 'tool_name' is unavailable
-```
-
-**Solutions:**
-1. List tools: `ael tools list`
-2. Check MCP server is configured
-3. Refresh tools: `ael tools refresh`
-4. Verify MCP server is running
-
-### MCP Connection Failed
-
-```
-Error: MCP_CONNECTION_FAILED - Failed to connect to MCP server
-```
-
-**Solutions:**
-1. Check server command: `npx -y @package/server`
-2. Verify package is installed
-3. Check environment variables
-4. Review server logs
-
-### Tool Timeout
-
-```
-Error: TOOL_TIMEOUT - Tool timed out after 30s
-```
-
-**Solutions:**
-1. Increase step timeout:
-   ```yaml
-   steps:
-     - id: slow_step
-       tool: slow_tool
-       timeout: 120
-   ```
-2. Check tool is not stuck
-3. Verify network connectivity
-
-## Code Step Issues
-
-### Syntax Error
-
-```
-Error: CODE_SYNTAX - Syntax error in code block
-```
-
-**Solutions:**
-1. Check Python syntax
-2. Verify indentation (use spaces, not tabs)
-3. Test code locally first
-4. Check for unclosed brackets/quotes
-
-### Security Violation
-
-```
-Error: CODE_SECURITY - Security violation in code block
-```
-
-**Solutions:**
-1. Remove forbidden imports (os, sys, subprocess)
-2. Don't use eval(), exec(), open()
-3. See [Code Steps Guide](code-steps.md) for allowed imports
-
-### Import Not Allowed
-
-```
-Error: Import 'requests' not allowed
-```
-
-**Solutions:**
-1. Use allowed imports only (json, re, datetime, etc.)
-2. Use tool steps for HTTP requests
-3. See [Code Steps Guide](code-steps.md)
-
-### Result Not Set
-
-```
-Error: Code step did not set 'result' variable
-```
-
-**Solutions:**
-1. Ensure code sets `result`:
-   ```yaml
-   code: |
-     data = process()
-     result = data  # Required!
-   ```
-
-## Execution Issues
-
-### Workflow Timeout
-
-```
-Error: WORKFLOW_TIMEOUT - Workflow timed out after 300s
-```
-
-**Solutions:**
-1. Increase workflow timeout in config
-2. Optimize slow steps
-3. Check for stuck tools
-4. Break into smaller workflows
-
-### Template Error
-
-```
-Error: TEMPLATE_ERROR - Template rendering failed
-```
-
-**Solutions:**
-1. Check Jinja2 syntax: `{{ variable }}`
-2. Verify variable names exist
-3. Check for typos in step/input names
-4. Use `| default('value')` for optional values
-
-## Server Issues
-
-### Port Already in Use
-
-```
-Error: Address already in use (port 8080)
-```
-
-**Solutions:**
-1. Use different port: `ael serve --port 8081`
-2. Find process: `lsof -i :8080`
-3. Kill process: `kill -9 <PID>`
-
-### API Authentication Failed
-
-```
-Error: 401 Unauthorized
-```
-
-**Solutions:**
-1. Check API key is configured
-2. Verify key in request header
-3. Check security config in `ael-config.yaml`
-
-## Getting Help
-
-### Debug Logging
-
-Enable debug logs:
+**Solution:**
 
 ```bash
-ael --log-level DEBUG run workflow.yaml
+# Validate workflow
+uv run ael validate workflows/my-workflow.yaml
+```
+
+Check for common issues:
+- Missing `name` field
+- Invalid step IDs (must be alphanumeric)
+- Missing `code` or `tool` in steps
+- Invalid Jinja2 syntax in templates
+
+### "Tool not found"
+
+**Problem:** Workflow references a tool that does not exist.
+
+**Solution:**
+
+```bash
+# List available tools
+uv run ael tools list
+
+# Check if MCP server is configured
+uv run ael config show --section tools
+
+# Refresh tools from MCP servers
+uv run ael tools refresh
+```
+
+### "Step timeout"
+
+**Problem:** Step execution exceeded timeout.
+
+**Solution:**
+
+Increase timeout in workflow:
+
+```yaml
+steps:
+  - id: slow_step
+    tool: http_request
+    params:
+      url: "https://slow-api.example.com"
+    timeout: 120  # seconds
 ```
 
 Or in config:
 
 ```yaml
-logging:
-  level: DEBUG
+execution:
+  default_timeout: 300
 ```
 
-### Check Version
+## MCP Server Issues
+
+### "MCP server connection failed"
+
+**Problem:** Cannot connect to MCP server.
+
+**Solution:**
 
 ```bash
-ael version
+# Check if command exists
+which npx  # for npm-based servers
+which python  # for Python servers
+
+# Test server manually
+npx -y @modelcontextprotocol/server-filesystem /tmp
+
+# Check environment variables
+echo $GITHUB_TOKEN  # for GitHub server
 ```
 
-### Report Issues
+### "MCP server timeout"
 
-1. Gather logs with DEBUG level
-2. Include workflow YAML (redact secrets)
-3. Include error message
-4. Open issue on GitHub
+**Problem:** MCP server takes too long to respond.
 
-## Related
+**Solution:**
 
-- [Error Codes Reference](../reference/error-codes.md)
-- [Configuration Reference](../reference/config-reference.md)
-- [Tool Integration Guide](tool-integration.md)
+Check server logs and increase timeout:
 
+```yaml
+tools:
+  mcp_servers:
+    slow_server:
+      command: "python"
+      args: ["-m", "slow_server"]
+      timeout: 60  # seconds
+```
+
+### "Tool schema mismatch"
+
+**Problem:** Tool parameters do not match expected schema.
+
+**Solution:**
+
+```bash
+# Check tool schema
+uv run ael tools show tool_name
+
+# Verify your parameters match the schema
+```
+
+## Runtime Issues
+
+### "Sandbox execution error"
+
+**Problem:** Python code in code step failed.
+
+**Solution:**
+
+Check for:
+- Syntax errors in code
+- Disallowed imports
+- Timeout exceeded
+
+```yaml
+# Enable debug logging
+logging:
+  level: DEBUG
+  components:
+    sandbox: true
+```
+
+### "Memory limit exceeded"
+
+**Problem:** Code step used too much memory.
+
+**Solution:**
+
+Increase memory limit in config:
+
+```yaml
+python_exec:
+  max_memory: 1073741824  # 1GB
+```
+
+Or optimize your code to use less memory.
+
+### "Import not allowed"
+
+**Problem:** Code step tried to import a disallowed module.
+
+**Solution:**
+
+Add the import to allowed list:
+
+```yaml
+python_exec:
+  allowed_imports:
+    - json
+    - re
+    - datetime
+    - math
+    - your_module  # Add your module
+```
+
+## Docker Issues
+
+### "Container will not start"
+
+**Problem:** Docker container fails to start.
+
+**Solution:**
+
+```bash
+# Check logs
+docker compose logs ael
+
+# Verify config mount
+docker compose config
+
+# Rebuild image
+docker compose build --no-cache
+docker compose up -d
+```
+
+### "Volume mount issues"
+
+**Problem:** Files not accessible in container.
+
+**Solution:**
+
+```bash
+# Check volume mounts
+docker compose config | grep volumes
+
+# Verify file permissions
+ls -la workflows/
+chmod -R 755 workflows/
+```
+
+## Getting Help
+
+If you are still stuck:
+
+1. **Check logs:** Enable debug logging
+   ```yaml
+   logging:
+     level: DEBUG
+   ```
+
+2. **Search issues:** [GitHub Issues](https://github.com/ostanlabs/agent-execution-layer/issues)
+
+3. **Ask for help:** [GitHub Discussions](https://github.com/ostanlabs/agent-execution-layer/discussions)
+
+4. **Report a bug:** Include:
+   - AEL version (`uv run ael version`)
+   - Python version (`python --version`)
+   - OS and version
+   - Full error message
+   - Minimal reproduction steps

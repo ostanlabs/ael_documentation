@@ -11,7 +11,7 @@ This workflow:
 
 ## Prerequisites
 
-- MCP server with `http_get` tool (e.g., `@anthropic/mcp-server-fetch`)
+- MCP server with fetch tool (e.g., `@modelcontextprotocol/server-fetch`)
 - AEL configured with the MCP server
 
 ## Configuration
@@ -22,7 +22,7 @@ tools:
   mcp_servers:
     fetch:
       command: npx
-      args: ["-y", "@anthropic/mcp-server-fetch"]
+      args: ["-y", "@modelcontextprotocol/server-fetch"]
 ```
 
 ## Workflow
@@ -88,15 +88,15 @@ output: "{{ steps.format.output }}"
 ### Validate
 
 ```bash
-ael validate workflows/web-scrape.yaml
+uv run ael validate workflows/web-scrape.yaml
 ```
 
 ### Run
 
 ```bash
-ael run workflows/web-scrape.yaml \
-  --input url="https://example.com" \
-  --input selector="title"
+uv run ael run workflows/web-scrape.yaml \
+  -i url="https://example.com" \
+  -i selector="title"
 ```
 
 ### Expected Output
@@ -167,7 +167,7 @@ steps:
 1. **Set appropriate timeouts** - Web requests can be slow
 2. **Use retry for transient failures** - Network issues are common
 3. **Validate responses** - Check content before processing
-4. **Limit extracted data** - Don't return entire pages
+4. **Limit extracted data** - Do not return entire pages
 5. **Handle encoding** - Web content may have various encodings
 
 ## Related
@@ -175,4 +175,3 @@ steps:
 - [Data Processing Example](data-processing.md)
 - [API Integration Example](api-integration.md)
 - [Workflow Authoring Guide](../guides/workflow-authoring.md)
-

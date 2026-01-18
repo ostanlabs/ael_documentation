@@ -4,14 +4,13 @@ Get AEL running in 5 minutes.
 
 ## Prerequisites
 
-- AEL installed ([Installation Guide](installation.md))
+- AEL installed from source ([Installation Guide](installation.md))
 - Terminal access
 
-## Step 1: Create Project Directory
+## Step 1: Navigate to Project
 
 ```bash
-mkdir my-ael-project
-cd my-ael-project
+cd agent-execution-layer
 ```
 
 ## Step 2: Create Configuration
@@ -52,7 +51,7 @@ output: "{{ steps.greet.output }}"
 ## Step 4: Validate the Workflow
 
 ```bash
-ael validate workflows/hello.yaml
+uv run ael validate workflows/hello.yaml
 ```
 
 Expected output:
@@ -63,7 +62,7 @@ Expected output:
 ## Step 5: Run the Workflow
 
 ```bash
-ael run workflows/hello.yaml
+uv run ael run workflows/hello.yaml
 ```
 
 Expected output:
@@ -74,7 +73,7 @@ Hello, World!
 Run with custom input:
 
 ```bash
-ael run workflows/hello.yaml -i name=Alice
+uv run ael run workflows/hello.yaml -i name=Alice
 ```
 
 Expected output:
@@ -87,7 +86,11 @@ Hello, Alice!
 Start AEL as an MCP server for AI agent integration:
 
 ```bash
-ael serve
+# Start with stdio transport (for AI agent integration)
+uv run ael serve
+
+# Or start with HTTP transport (for REST access)
+uv run ael serve --transport http --port 8080
 ```
 
 The workflow is now available as an MCP tool named `workflow:hello`.
@@ -95,6 +98,7 @@ The workflow is now available as an MCP tool named `workflow:hello`.
 ## What's Next?
 
 You've successfully:
+
 - ✅ Created an AEL project
 - ✅ Written a workflow
 - ✅ Validated and executed it
@@ -111,4 +115,3 @@ You've successfully:
 - [Web Scraping Example](../examples/web-scraping.md)
 - [Data Processing Example](../examples/data-processing.md)
 - [API Integration Example](../examples/api-integration.md)
-

@@ -1,258 +1,294 @@
 # Tool Integration Guide
 
-Guide to integrating MCP tools with AEL workflows.
+This guide explains how to integrate and use tools in AEL workflows.
 
-## Overview
+## Tool Types
 
-AEL connects to MCP (Model Context Protocol) servers to access tools. Tools can:
+AEL supports three types of tools:
 
-- Read/write files
-- Make HTTP requests
-- Query databases
-- Execute system commands
-- And more...
+| Type | Description | Example |
+|------|-------------|---------|
+| **System** | Built-in tools | `python_exec` |
+| **MCP** | Tools from MCP servers | `fs_read`, `kafka_publish` |
+| **HTTP** | REST API endpoints | Custom API wrappers |
 
-## Configuring MCP Servers
+## Built-in Tools
 
-### Stdio Transport (Local)
+### python_exec
 
-For locally-spawned MCP servers:
+Execute Python code in a secure sandbox.
 
 ```yaml
-# ael-config.yaml
+steps:
+  - id: calculate
+    tool: python_exec
+    params:
+      code: |
+        import math
+        result = math.sqrt(16)
+```
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `code` | string | Yes | Python code to execute |
+| `timeout` | int | No | Execution timeout (seconds) |
+
+## MCP Server Tools
+
+MCP (Model Context Protocol) servers provide tools via a standardized protocol.
+
+### Configuring MCP Servers
+
+Add MCP servers to your `ael-config.yaml`:
+
+```yaml
 tools:
   mcp_servers:
+    # Filesystem tools
     filesystem:
-      command: npx
-      args: ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
-      timeout: 30
-```
-
-### HTTP Transport (Remote)
-
-For remote MCP servers:
-
-```yaml
-tools:
-  mcp_servers:
-    remote-tools:
-      url: "http://mcp-server.example.com:8080/mcp"
-      transport: http
-      timeout: 30
-```
-
-### Environment Variables
-
-Pass environment variables to MCP servers:
-
-```yaml
-tools:
-  mcp_servers:
-    api-tools:
-      command: npx
-      args: ["-y", "@example/mcp-server-api"]
+      command: "npx"
+      args: ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"]
+    
+    # GitHub tools
+    github:
+      command: "npx"
+      args: ["-y", "@modelcontextprotocol/server-github"]
       env:
-        API_KEY: "${MY_API_KEY}"
-        API_URL: "https://api.example.com"
+        GITHUB_TOKEN: "${GITHUB_TOKEN}"
+    
+    # Custom MCP server
+    native_tools:
+      command: "python"
+      args: ["-m", "native_tools.server"]
+      env:
+        WORKSPACE_DIR: "${WORKSPACE_DIR:-.}"
 ```
 
-## Discovering Tools
+### Available MCP Servers
 
-### List Available Tools
+Popular MCP servers from the community:
 
-```bash
-ael tools list
-```
+| Server | Package | Tools |
+|--------|---------|-------|
+| Filesystem | `@modelcontextprotocol/server-filesystem` | File read/write/list |
+| GitHub | `@modelcontextprotocol/server-github` | Repo, issues, PRs |
+| Fetch | `@modelcontextprotocol/server-fetch` | HTTP requests |
+| Postgres | `@modelcontextprotocol/server-postgres` | Database queries |
 
-Output:
-```
-Available Tools:
-  filesystem/read_file     - Read file contents
-  filesystem/write_file    - Write file contents
-  filesystem/list_directory - List directory contents
-  fetch/fetch              - Fetch URL content
-```
+### Native Tools Server
 
-### View Tool Details
+AEL includes a native tools MCP server with these tools:
 
-```bash
-ael tools show filesystem/read_file
-```
-
-Output:
-```
-Tool: filesystem/read_file
-Description: Read the contents of a file
-
-Parameters:
-  path (string, required): Path to the file to read
-
-Example:
-  params:
-    path: "/tmp/data.txt"
-```
-
-### Refresh Tools
-
-After adding new MCP servers:
-
-```bash
-ael tools refresh
-```
+| Category | Tools |
+|----------|-------|
+| Filesystem | `fs_read`, `fs_write`, `fs_list`, `fs_delete` |
+| Network | `http_request`, `network_ping`, `network_dns_lookup` |
+| Kafka | `kafka_publish`, `kafka_list_topics`, `kafka_consume` |
+| Firecrawl | `firecrawl_search`, `firecrawl_map`, `firecrawl_extract` |
+| Data | `data_validate`, `data_json_to_csv`, `data_csv_to_json` |
+| Extraction | `extract_text`, `extract_structured` |
+| ML | `ml_embed_text`, `ml_text_similarity` |
 
 ## Using Tools in Workflows
 
-### Basic Tool Step
+### Tool Steps
+
+Call a tool directly:
 
 ```yaml
 steps:
-  - id: read_config
-    tool: filesystem/read_file
+  - id: read_file
+    tool: fs_read
     params:
-      path: "/etc/app/config.json"
+      path: "data/input.json"
 ```
 
-### With Dynamic Parameters
+### Tool Calls from Code Steps
+
+Call tools from Python code:
 
 ```yaml
 steps:
+  - id: process
+    code: |
+      # Read file using tool
+      content = call_tool("fs_read", {"path": "data/input.json"})
+      
+      # Process the content
+      data = json.loads(content["content"])
+      result = {"count": len(data)}
+```
+
+### Conditional Tool Calls
+
+```yaml
+steps:
+  - id: check
+    code: |
+      result = {"needs_fetch": True}
+  
   - id: fetch_data
-    tool: fetch/fetch
+    tool: http_request
     params:
-      url: "{{ inputs.api_url }}/data"
-      headers:
-        Authorization: "Bearer {{ inputs.token }}"
+      url: "https://api.example.com/data"
+    when: "{{ steps.check.output.needs_fetch }}"
 ```
 
-### With Error Handling
+## Listing Available Tools
+
+Use the CLI to see available tools:
+
+```bash
+# List all tools
+uv run ael tools list
+
+# Filter by source
+uv run ael tools list --source mcp
+uv run ael tools list --source system
+
+# Show tool details
+uv run ael tools show fs_read
+```
+
+Example output:
+
+```
+NAME              SOURCE   SERVER        STATUS      DESCRIPTION
+─────────────────────────────────────────────────────────────────
+fs_read           mcp      native_tools  available   Read file content
+fs_write          mcp      native_tools  available   Write file content
+kafka_publish     mcp      native_tools  available   Publish to Kafka
+python_exec       system   -             available   Execute Python code
+
+Total: 4 tools (4 available)
+```
+
+## Tool Input/Output
+
+### Input Schema
+
+Tools define their input parameters via JSON Schema:
+
+```bash
+uv run ael tools show fs_read
+```
+
+```yaml
+Tool: fs_read
+Description: Read file content from workspace
+
+Input Schema:
+  type: object
+  properties:
+    path:
+      type: string
+      description: File path relative to workspace
+    encoding:
+      type: string
+      default: utf-8
+  required:
+    - path
+```
+
+### Output Handling
+
+Tool outputs are available in subsequent steps:
 
 ```yaml
 steps:
-  - id: write_result
-    tool: filesystem/write_file
+  - id: read
+    tool: fs_read
     params:
-      path: "{{ inputs.output_path }}"
-      content: "{{ steps.process.output }}"
-    on_error: retry
+      path: "config.json"
+  
+  - id: process
+    code: |
+      # Access tool output
+      file_content = "{{ steps.read.output.content }}"
+      result = json.loads(file_content)
+```
+
+## Error Handling
+
+### Tool Errors
+
+Handle tool failures gracefully:
+
+```yaml
+steps:
+  - id: fetch
+    tool: http_request
+    params:
+      url: "https://api.example.com/data"
+    on_error: continue  # Don't fail workflow
+  
+  - id: handle_error
+    code: |
+      if "{{ steps.fetch.error }}":
+        result = {"status": "failed", "fallback": True}
+      else:
+        result = "{{ steps.fetch.output }}"
+```
+
+### Retry Configuration
+
+Configure retries in workflow:
+
+```yaml
+steps:
+  - id: unreliable_call
+    tool: http_request
+    params:
+      url: "https://flaky-api.example.com"
     retry:
       max_attempts: 3
-      initial_delay: 1.0
+      backoff: exponential
 ```
 
-## Calling Tools from Code
+## Creating Custom MCP Servers
 
-Use `tools.call()` in code steps:
+Create your own MCP server using FastMCP:
 
-```yaml
-steps:
-  - id: dynamic_fetch
-    code: |
-      urls = {{ inputs.urls }}
-      results = []
-      
-      for url in urls:
-          response = await tools.call("fetch/fetch", {
-              "url": url
-          })
-          results.append(response)
-      
-      result = results
+```python
+# my_tools/server.py
+from fastmcp import FastMCP
+
+mcp = FastMCP("my-tools")
+
+@mcp.tool()
+def my_custom_tool(param1: str, param2: int = 10) -> dict:
+    """My custom tool description."""
+    return {"result": f"{param1} x {param2}"}
+
+if __name__ == "__main__":
+    mcp.run()
 ```
 
-### Tool Call Limits
-
-Default: 10 calls per code step. Configure in `ael-config.yaml`:
-
-```yaml
-python_exec:
-  max_tool_calls: 50
-```
-
-## Common MCP Servers
-
-### Filesystem
+Configure in `ael-config.yaml`:
 
 ```yaml
 tools:
   mcp_servers:
-    filesystem:
-      command: npx
-      args: ["-y", "@modelcontextprotocol/server-filesystem", "/allowed/path"]
+    my_tools:
+      command: "python"
+      args: ["-m", "my_tools.server"]
 ```
-
-Tools: `read_file`, `write_file`, `list_directory`, `create_directory`
-
-### Fetch (HTTP)
-
-```yaml
-tools:
-  mcp_servers:
-    fetch:
-      command: npx
-      args: ["-y", "@anthropic/mcp-server-fetch"]
-```
-
-Tools: `fetch` (GET/POST requests)
-
-### SQLite
-
-```yaml
-tools:
-  mcp_servers:
-    sqlite:
-      command: npx
-      args: ["-y", "@anthropic/mcp-server-sqlite", "/path/to/db.sqlite"]
-```
-
-Tools: `query`, `execute`
-
-## Troubleshooting
-
-### Tool Not Found
-
-```
-Error: TOOL_UNAVAILABLE - Tool 'unknown_tool' is unavailable
-```
-
-**Solutions:**
-1. Check tool name: `ael tools list`
-2. Verify MCP server is configured
-3. Refresh tools: `ael tools refresh`
-
-### Connection Failed
-
-```
-Error: MCP_CONNECTION_FAILED - Failed to connect to MCP server
-```
-
-**Solutions:**
-1. Check MCP server command is correct
-2. Verify required packages are installed
-3. Check server logs for errors
-4. Test server manually: `npx -y @package/server`
-
-### Tool Timeout
-
-```
-Error: TOOL_TIMEOUT - Tool 'slow_tool' timed out after 30s
-```
-
-**Solutions:**
-1. Increase timeout in config or step
-2. Check if tool is stuck
-3. Verify network connectivity
 
 ## Best Practices
 
-1. **Use specific tool names** - Include server prefix: `filesystem/read_file`
-2. **Set appropriate timeouts** - Different tools need different timeouts
-3. **Handle errors** - Use `on_error` and `retry` for unreliable tools
-4. **Limit tool calls** - Don't call tools in tight loops
-5. **Validate parameters** - Check inputs before calling tools
+1. **Use descriptive tool names** - Makes workflows readable
+2. **Handle errors** - Use `on_error` and fallback logic
+3. **Set timeouts** - Prevent hanging on slow tools
+4. **Validate inputs** - Check parameters before tool calls
+5. **Log tool calls** - Enable tool logging for debugging
 
-## Related
-
-- [Configuration Reference](../reference/config-reference.md)
-- [Error Codes Reference](../reference/error-codes.md)
-- [Troubleshooting Guide](troubleshooting.md)
-
+```yaml
+logging:
+  components:
+    tool: true
+  options:
+    show_params: true
+    show_results: true
+```

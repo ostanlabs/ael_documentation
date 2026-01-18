@@ -18,13 +18,66 @@ AEL (Agent Execution Layer) is a workflow execution engine that:
 - **Exposes workflows as MCP tools** for AI agent consumption
 - **Supports REST API** for programmatic access
 
+## How AEL Works
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      AI Agent / Client                       │
+└─────────────────────────┬───────────────────────────────────┘
+                          │ MCP Protocol / REST API
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                           AEL                                │
+│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────┐ │
+│  │   Workflow  │  │    Tool      │  │    MCP Frontend     │ │
+│  │   Engine    │  │   Registry   │  │  (stdio or HTTP)    │ │
+│  └──────┬──────┘  └──────┬───────┘  └─────────────────────┘ │
+│         │                │                                   │
+│         ▼                ▼                                   │
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │              Python Sandbox (Code Steps)                 ││
+│  └─────────────────────────────────────────────────────────┘│
+└─────────────────────────┬───────────────────────────────────┘
+                          │ MCP Protocol
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    External MCP Servers                      │
+│  (filesystem, fetch, databases, custom tools, etc.)          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Key Concepts
+
+| Concept | Description |
+|---------|-------------|
+| **Workflow** | A YAML file defining a sequence of steps to execute |
+| **Step** | Either a code step (Python) or a tool step (MCP tool call) |
+| **MCP Server** | External service providing tools via Model Context Protocol |
+| **Tool** | A function that can be called from workflows or by AI agents |
+
+## Quick Start
+
+```bash
+# Clone and install
+git clone https://github.com/ostanlabs/agent-execution-layer.git
+cd agent-execution-layer
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv sync
+
+# Run a workflow
+uv run ael run examples/workflows/hello-world.yaml
+
+# Start as MCP server
+uv run ael serve
+```
+
 ## Documentation Sections
 
 ### Getting Started
 
 | Guide | Description |
 |-------|-------------|
-| [Installation](getting-started/installation.md) | Install via pip, Docker, or from source |
+| [Installation](getting-started/installation.md) | Install from source or Docker |
 | [Quickstart](getting-started/quickstart.md) | 5-minute introduction to AEL |
 | [First Workflow](getting-started/first-workflow.md) | Step-by-step workflow tutorial |
 
@@ -68,4 +121,3 @@ AEL (Agent Execution Layer) is a workflow execution engine that:
 ## License
 
 AEL is released under the [MIT License](https://github.com/ostanlabs/agent-execution-layer/blob/main/LICENSE).
-

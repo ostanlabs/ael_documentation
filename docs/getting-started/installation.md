@@ -5,84 +5,137 @@ This guide covers installing AEL on your system.
 ## Requirements
 
 - **Python**: 3.12 or higher
-- **pip**: Latest version recommended
+- **Git**: For cloning the repository
 - **OS**: macOS, Linux, or Windows
 
 ## Installation Methods
 
-### Using pip (Recommended)
+### From Source (Recommended)
+
+Clone the repository and install dependencies:
 
 ```bash
-pip install ael
-```
+# Clone the repository
+git clone https://github.com/ostanlabs/agent-execution-layer.git
+cd agent-execution-layer
 
-Verify the installation:
+# Install uv (fast Python package manager)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-```bash
-ael version
-```
-
-Expected output:
-```
-AEL version 0.1.0
+# Install dependencies
+uv sync
 ```
 
 ### Using Docker
 
-Pull the official Docker image:
+Build and run AEL using Docker Compose:
 
 ```bash
-docker pull ghcr.io/ostanlabs/ael:latest
-```
-
-Run AEL in a container:
-
-```bash
-docker run -it --rm \
-  -v $(pwd)/workflows:/app/workflows \
-  -v $(pwd)/ael-config.yaml:/app/ael-config.yaml \
-  ghcr.io/ostanlabs/ael:latest serve
-```
-
-### From Source
-
-Clone the repository:
-
-```bash
+# Clone the repository
 git clone https://github.com/ostanlabs/agent-execution-layer.git
 cd agent-execution-layer
+
+# Build and start services
+docker compose up -d
+
+# View logs
+docker compose logs -f ael
 ```
 
-Install with uv (recommended for development):
+Or build the image manually:
 
 ```bash
-# Install uv if not already installed
-curl -LsSf https://astral.sh/uv/install.sh | sh
+docker build -t ael:latest .
+docker run -p 8080:8080 ael:latest
+```
 
-# Install dependencies and create virtual environment
-uv sync
+## Running the CLI
 
-# Verify installation
+After installation from source, you have several ways to run the AEL CLI:
+
+### Option 1: Using uv run (Recommended)
+
+```bash
+# No activation needed - uv handles the virtual environment
+uv run ael --help
 uv run ael version
+uv run ael serve
 ```
 
-Or with pip:
+### Option 2: Activate Virtual Environment
 
 ```bash
-pip install -e .
+# Activate the virtual environment first
+source .venv/bin/activate  # Linux/macOS
+# or
+.venv\Scripts\activate     # Windows
+
+# Then run ael directly
+ael --help
 ael version
+ael serve
 ```
 
-## Post-Installation Setup
+### Option 3: Direct Path
 
-### 1. Create Configuration File
+```bash
+# Run directly from the virtual environment
+.venv/bin/ael --help       # Linux/macOS
+.venv\Scripts\ael.exe      # Windows
+```
+
+## Configuration Modes
+
+AEL operates in two modes:
+
+### Running Mode
+
+When AEL finds a valid configuration file, it starts in **running mode** with full functionality:
+
+```bash
+uv run ael serve
+# Output:
+# [AEL] Config loaded from: ./ael-config.yaml
+# [AEL] Mode: running
+# [AEL] Workflows: 5 registered
+```
+
+### Configuration Mode
+
+When no configuration file exists, AEL starts in **configuration mode**:
+
+```bash
+uv run ael serve
+# Output:
+# [AEL] No config found (searched: ./ael-config.yaml, ~/.ael/config.yaml)
+# [AEL] Mode: configuration
+# [AEL] Use config tools to set up AEL
+```
+
+In configuration mode, AEL exposes special MCP tools for setup:
+
+| Tool | Description |
+|------|-------------|
+| `config_get` | Read current configuration |
+| `config_set` | Stage configuration changes |
+| `config_validate` | Validate staged configuration |
+| `config_done` | Apply config and switch to running mode |
+
+You can also force a specific mode:
+
+```bash
+# Force configuration mode (even if config exists)
+uv run ael serve --mode configuration
+
+# Force running mode (fails if no config)
+uv run ael serve --mode running
+```
+
+## Creating a Configuration File
 
 Create `ael-config.yaml` in your project directory:
 
 ```yaml
-mcp:
-  servers: {}
-
 workflows:
   directory: "./workflows"
 
@@ -90,27 +143,25 @@ logging:
   level: INFO
 ```
 
-### 2. Create Workflows Directory
+Create the workflows directory:
 
 ```bash
 mkdir -p workflows
 ```
 
-### 3. Verify Setup
+Verify the setup:
 
 ```bash
-ael config show
+uv run ael config show
 ```
-
-This should display your configuration without errors.
 
 ## Optional: MCP Server Setup
 
-To use external tools, configure MCP servers in your config:
+To use external tools, configure MCP servers:
 
 ```yaml
-mcp:
-  servers:
+tools:
+  mcp_servers:
     filesystem:
       command: "npx"
       args: ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
@@ -119,8 +170,6 @@ mcp:
 ## Troubleshooting
 
 ### Python Version Error
-
-If you see "Python 3.12+ required":
 
 ```bash
 # Check your Python version
@@ -131,37 +180,25 @@ pyenv install 3.12
 pyenv local 3.12
 ```
 
-### Permission Denied
-
-On Linux/macOS, you may need to use `pip install --user`:
+### uv Not Found
 
 ```bash
-pip install --user ael
-```
+# Reinstall uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-Or use a virtual environment:
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install ael
-```
-
-### Command Not Found
-
-Ensure the pip scripts directory is in your PATH:
-
-```bash
-# Linux/macOS
+# Add to PATH (if needed)
 export PATH="$HOME/.local/bin:$PATH"
-
-# Windows (PowerShell)
-$env:PATH += ";$env:APPDATA\Python\Python312\Scripts"
 ```
+
+### Command Not Found After uv sync
+
+Make sure you're using one of the CLI invocation methods above. The `ael` command is only available:
+- When using `uv run ael`
+- After activating the virtual environment
+- Via direct path `.venv/bin/ael`
 
 ## Next Steps
 
 - [Quickstart Guide](quickstart.md) - Run your first workflow
 - [First Workflow Tutorial](first-workflow.md) - Create a custom workflow
 - [Configuration Reference](../reference/config-reference.md) - All config options
-

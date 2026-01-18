@@ -139,9 +139,9 @@ output: "{{ steps.format.output }}"
 ### Run
 
 ```bash
-ael run workflows/data-process.yaml \
-  --input data='[{"id":1,"name":"item a","value":100,"category":"electronics","active":true},{"id":2,"name":"item b","value":50,"category":"clothing","active":true},{"id":4,"name":"item d","value":200,"category":"electronics","active":true}]' \
-  --input group_by="category"
+uv run ael run workflows/data-process.yaml \
+  -i data='[{"id":1,"name":"item a","value":100,"category":"electronics","active":true},{"id":2,"name":"item b","value":50,"category":"clothing","active":true},{"id":4,"name":"item d","value":200,"category":"electronics","active":true}]' \
+  -i group_by="category"
 ```
 
 ### Expected Output
@@ -219,4 +219,3 @@ ael run workflows/data-process.yaml \
 - [Web Scraping Example](web-scraping.md)
 - [API Integration Example](api-integration.md)
 - [Code Steps Guide](../guides/code-steps.md)
-

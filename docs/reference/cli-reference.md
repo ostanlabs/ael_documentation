@@ -2,6 +2,22 @@
 
 Complete reference for all AEL command-line interface commands.
 
+## Running the CLI
+
+After installing AEL from source, use one of these methods:
+
+```bash
+# Recommended: Use uv run
+uv run ael <command>
+
+# Or activate venv first
+source .venv/bin/activate
+ael <command>
+
+# Or use direct path
+.venv/bin/ael <command>
+```
+
 ## Global Options
 
 These options apply to all commands:
@@ -21,7 +37,7 @@ These options apply to all commands:
 Start AEL as an MCP server.
 
 ```bash
-ael serve [OPTIONS]
+uv run ael serve [OPTIONS]
 ```
 
 **Options:**
@@ -29,7 +45,7 @@ ael serve [OPTIONS]
 | Option | Default | Description |
 |--------|---------|-------------|
 | `--no-watch` | false | Disable workflow file watching |
-| `--mode MODE` | auto | Initial mode: `configuration` or `running` |
+| `--mode MODE` | auto | Startup mode: `configuration` or `running` |
 | `--transport TYPE` | stdio | Transport: `stdio` or `http` |
 | `--port PORT` | 8080 | HTTP port (only with `--transport http`) |
 | `--host HOST` | 0.0.0.0 | HTTP host (only with `--transport http`) |
@@ -37,17 +53,37 @@ ael serve [OPTIONS]
 **Examples:**
 
 ```bash
-# Start with stdio transport (default)
-ael serve
+# Start with stdio transport (default, for AI agent integration)
+uv run ael serve
 
-# Start with HTTP transport
-ael serve --transport http --port 8080
+# Start with HTTP transport (for REST access)
+uv run ael serve --transport http --port 8080
 
 # Start without file watching
-ael serve --no-watch
+uv run ael serve --no-watch
 
-# Start in configuration mode
-ael serve --mode configuration
+# Force configuration mode (for initial setup)
+uv run ael serve --mode configuration
+
+# Force running mode (fails if no config)
+uv run ael serve --mode running
+```
+
+**Startup Output:**
+
+When config is found (running mode):
+```
+[AEL] Config loaded from: ./ael-config.yaml
+[AEL] Mode: running
+[AEL] MCP servers: filesystem, github (2)
+[AEL] Workflows: 5 registered
+```
+
+When no config found (configuration mode):
+```
+[AEL] No config found (searched: ./ael-config.yaml, ~/.ael/config.yaml)
+[AEL] Mode: configuration
+[AEL] Use config tools to set up AEL
 ```
 
 ### `ael run`
@@ -55,14 +91,14 @@ ael serve --mode configuration
 Execute a workflow.
 
 ```bash
-ael run WORKFLOW [OPTIONS]
+uv run ael run WORKFLOW [OPTIONS]
 ```
 
 **Arguments:**
 
 | Argument | Description |
 |----------|-------------|
-| `WORKFLOW` | Path to workflow YAML file |
+| `WORKFLOW` | Path to workflow YAML file or workflow name |
 
 **Options:**
 
@@ -76,16 +112,16 @@ ael run WORKFLOW [OPTIONS]
 
 ```bash
 # Run with default inputs
-ael run workflows/hello.yaml
+uv run ael run workflows/hello.yaml
 
 # Run with input parameters
-ael run workflows/hello.yaml -i name=Alice -i count=5
+uv run ael run workflows/hello.yaml -i name=Alice -i count=5
 
 # Run with inputs from file
-ael run workflows/process.yaml --input-file inputs.json
+uv run ael run workflows/process.yaml --input-file inputs.json
 
 # Run with timeout
-ael run workflows/long-task.yaml --timeout 300
+uv run ael run workflows/long-task.yaml --timeout 300
 ```
 
 ### `ael validate`
@@ -93,7 +129,7 @@ ael run workflows/long-task.yaml --timeout 300
 Validate a workflow YAML file.
 
 ```bash
-ael validate FILE [OPTIONS]
+uv run ael validate FILE [OPTIONS]
 ```
 
 **Options:**
@@ -107,13 +143,10 @@ ael validate FILE [OPTIONS]
 
 ```bash
 # Basic validation
-ael validate workflows/my-workflow.yaml
+uv run ael validate workflows/my-workflow.yaml
 
 # Strict validation
-ael validate workflows/my-workflow.yaml --strict
-
-# Validate with tool checking
-ael validate workflows/my-workflow.yaml --check-tools
+uv run ael validate workflows/my-workflow.yaml --strict
 ```
 
 ### `ael version`
@@ -121,100 +154,15 @@ ael validate workflows/my-workflow.yaml --check-tools
 Show version information.
 
 ```bash
-ael version
+uv run ael version
 ```
-
-### `ael config show`
-
-Show current configuration.
-
-```bash
-ael config show [OPTIONS]
-```
-
-**Options:**
-
-| Option | Description |
-|--------|-------------|
-| `--section NAME` | Show specific section only |
-
-**Examples:**
-
-```bash
-# Show all configuration
-ael config show
-
-# Show specific section
-ael config show --section mcp
-ael config show --section logging
-```
-
-### `ael workflows list`
-
-List registered workflows.
-
-```bash
-ael workflows list
-```
-
-### `ael workflows show`
-
-Show workflow details.
-
-```bash
-ael workflows show NAME
-```
-
-**Example:**
-
-```bash
-ael workflows show hello-world
-```
-
-### `ael tools list`
-
-List available tools.
-
-```bash
-ael tools list [OPTIONS]
-```
-
-**Options:**
-
-| Option | Description |
-|--------|-------------|
-| `--source TYPE` | Filter by source: `mcp` or `system` |
-| `--server NAME` | Filter by MCP server name |
-| `--status STATUS` | Filter by status: `available` or `unavailable` |
-
-### `ael tools show`
-
-Show tool details.
-
-```bash
-ael tools show NAME
-```
-
-### `ael tools refresh`
-
-Refresh tool schemas from MCP servers.
-
-```bash
-ael tools refresh [OPTIONS]
-```
-
-**Options:**
-
-| Option | Description |
-|--------|-------------|
-| `--server NAME` | Refresh specific server only |
 
 ### `ael api`
 
 Start AEL REST API server.
 
 ```bash
-ael api [OPTIONS]
+uv run ael api [OPTIONS]
 ```
 
 **Options:**
@@ -233,12 +181,120 @@ ael api [OPTIONS]
 
 ```bash
 # Start API server
-ael api --port 8080
+uv run ael api --port 8080
 
 # Start with authentication
-ael api --require-auth
+uv run ael api --require-auth
 
 # Start with rate limiting
-ael api --rate-limit 100
+uv run ael api --rate-limit 100
+
+# With execution history storage
+uv run ael api --db ./ael-executions.db
 ```
 
+**API Endpoints:**
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/workflows` | GET | List workflows |
+| `/api/v1/workflows/{name}` | GET | Get workflow details |
+| `/api/v1/workflows/{name}/execute` | POST | Execute workflow |
+| `/api/v1/tools` | GET | List tools |
+| `/api/v1/health` | GET | Health check |
+| `/docs` | GET | OpenAPI documentation |
+
+### `ael config show`
+
+Show current configuration.
+
+```bash
+uv run ael config show [OPTIONS]
+```
+
+**Options:**
+
+| Option | Description |
+|--------|-------------|
+| `--section NAME` | Show specific section only |
+
+**Examples:**
+
+```bash
+# Show all configuration
+uv run ael config show
+
+# Show specific section
+uv run ael config show --section mcp
+uv run ael config show --section logging
+
+# Output as JSON
+uv run ael --json config show
+```
+
+### `ael workflows list`
+
+List registered workflows.
+
+```bash
+uv run ael workflows list
+```
+
+### `ael workflows show`
+
+Show workflow details.
+
+```bash
+uv run ael workflows show NAME
+```
+
+**Example:**
+
+```bash
+uv run ael workflows show hello-world
+```
+
+### `ael tools list`
+
+List available tools.
+
+```bash
+uv run ael tools list [OPTIONS]
+```
+
+**Options:**
+
+| Option | Description |
+|--------|-------------|
+| `--source TYPE` | Filter by source: `mcp` or `system` |
+| `--server NAME` | Filter by MCP server name |
+| `--status STATUS` | Filter by status: `available` or `unavailable` |
+
+### `ael tools show`
+
+Show tool details.
+
+```bash
+uv run ael tools show NAME
+```
+
+### `ael tools refresh`
+
+Refresh tool schemas from MCP servers.
+
+```bash
+uv run ael tools refresh [OPTIONS]
+```
+
+**Options:**
+
+| Option | Description |
+|--------|-------------|
+| `--server NAME` | Refresh specific server only |
+
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | Error (validation failed, config not found, etc.) |

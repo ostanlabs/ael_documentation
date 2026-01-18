@@ -12,7 +12,7 @@ This workflow:
 
 ## Prerequisites
 
-- MCP server with HTTP tools (e.g., `@anthropic/mcp-server-fetch`)
+- MCP server with HTTP tools (e.g., `@modelcontextprotocol/server-fetch`)
 - API credentials configured
 
 ## Configuration
@@ -23,7 +23,7 @@ tools:
   mcp_servers:
     fetch:
       command: npx
-      args: ["-y", "@anthropic/mcp-server-fetch"]
+      args: ["-y", "@modelcontextprotocol/server-fetch"]
       env:
         API_BASE_URL: "https://api.example.com"
 ```
@@ -136,10 +136,10 @@ output: "{{ steps.combine.output }}"
 ### Run
 
 ```bash
-ael run workflows/api-integration.yaml \
-  --input api_key="your-api-key" \
-  --input user_id="12345" \
-  --input include_details=true
+uv run ael run workflows/api-integration.yaml \
+  -i api_key="your-api-key" \
+  -i user_id="12345" \
+  -i include_details=true
 ```
 
 ### Expected Output
@@ -191,7 +191,7 @@ steps:
       page = 1
       
       while page <= 5:  # Max 5 pages
-          response = await tools.call("fetch", {
+          response = call_tool("fetch", {
               "url": f"https://api.example.com/orders?page={page}",
               "headers": {"Authorization": "Bearer {{ inputs.api_key }}"}
           })
@@ -214,7 +214,7 @@ steps:
 2. **Set timeouts** - APIs can be slow or unresponsive
 3. **Handle errors** - Use `on_error: continue` for non-critical calls
 4. **Validate responses** - Check for error fields in API responses
-5. **Limit data** - Don't fetch more than needed
+5. **Limit data** - Do not fetch more than needed
 6. **Use retry** - Transient failures are common with APIs
 
 ## Related
@@ -222,4 +222,3 @@ steps:
 - [Web Scraping Example](web-scraping.md)
 - [Data Processing Example](data-processing.md)
 - [Tool Integration Guide](../guides/tool-integration.md)
-
