@@ -85,6 +85,11 @@ nav:
     - Installation: getting-started/installation.md
     - Quickstart: getting-started/quickstart.md
     - First Workflow: getting-started/first-workflow.md
+  - Concepts:
+    - How AEL Works: concepts/how-ael-works.md
+    - Execution Model: concepts/execution-model.md
+    - Workflows as Tools: concepts/workflows-as-tools.md
+    - Security Model: concepts/security-model.md
   - Guides:
     - Workflow Authoring: guides/workflow-authoring.md
     - Code Steps: guides/code-steps.md
@@ -96,6 +101,8 @@ nav:
     - Configuration: reference/config-reference.md
     - Workflow Schema: reference/workflow-schema.md
     - Error Codes: reference/error-codes.md
+  - Why AEL?: why-ael.md
+  - Roadmap: roadmap.md
   - Examples:
     - Web Scraping: examples/web-scraping.md
     - Data Processing: examples/data-processing.md
