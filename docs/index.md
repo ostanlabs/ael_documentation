@@ -26,14 +26,15 @@ No enterprise will deploy this in production. No developer wants to debug it.
 
 AEL moves orchestration out of the LLM and into a deterministic runtime.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  TODAY                         WITH AEL                     │
-├─────────────────────────────────────────────────────────────┤
-│  LLM = planner + executor      LLM = planner                │
-│        (fragile, expensive)    AEL = executor               │
-│                                      (deterministic, fast)  │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    subgraph TODAY["TODAY"]
+        A["LLM = planner + executor<br/>(fragile, expensive)"]
+    end
+    subgraph WITHAEL["WITH AEL"]
+        B["LLM = planner"]
+        C["AEL = executor<br/>(deterministic, fast)"]
+    end
 ```
 
 You define workflows in YAML. AEL exposes them as MCP tools. When your agent needs to scrape a website, transform the data, and publish it—it makes **one call** to your workflow. AEL handles the rest.
@@ -44,27 +45,23 @@ Same inputs. Same outputs. Every time.
 
 ## How It Works
 
-```
-Agent (Claude, GPT, etc.)
-  │
-  │  MCP call: workflow:scrape-and-publish
-  ▼
-┌─────────────────────────────────┐
-│              AEL                │
-│  ┌───────────────────────────┐  │
-│  │  Step 1: fetch_url        │  │
-│  │  Step 2: extract_data     │  │
-│  │  Step 3: validate_schema  │  │
-│  │  Step 4: publish_to_kafka │  │
-│  └───────────────────────────┘  │
-│                                 │
-│  ✓ Deterministic execution      │
-│  ✓ Full trace and audit log     │
-│  ✓ Built-in retry and errors    │
-└─────────────────────────────────┘
-  │
-  ▼
-Result returned to agent
+```mermaid
+flowchart TB
+    Agent["Agent (Claude, GPT, etc.)"]
+    Agent -->|"MCP call: workflow:scrape-and-publish"| AEL
+
+    subgraph AEL["AEL"]
+        direction TB
+        S1["Step 1: fetch_url"]
+        S2["Step 2: extract_data"]
+        S3["Step 3: validate_schema"]
+        S4["Step 4: publish_to_kafka"]
+        S1 --> S2 --> S3 --> S4
+
+        Features["✓ Deterministic execution<br/>✓ Full trace and audit log<br/>✓ Built-in retry and errors"]
+    end
+
+    AEL --> Result["Result returned to agent"]
 ```
 
 The agent doesn't orchestrate. It delegates to infrastructure that executes reliably.
@@ -127,30 +124,29 @@ It's the **execution layer** that makes agent systems production-ready.
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      AI Agent / Client                       │
-└─────────────────────────┬───────────────────────────────────┘
-                          │ MCP Protocol / REST API
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                           AEL                                │
-│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────┐ │
-│  │   Workflow  │  │    Tool      │  │    MCP Frontend     │ │
-│  │   Engine    │  │   Registry   │  │  (stdio or HTTP)    │ │
-│  └──────┬──────┘  └──────┬───────┘  └─────────────────────┘ │
-│         │                │                                   │
-│         ▼                ▼                                   │
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │              Python Sandbox (Code Steps)                 ││
-│  └─────────────────────────────────────────────────────────┘│
-└─────────────────────────┬───────────────────────────────────┘
-                          │ MCP Protocol
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    External MCP Servers                      │
-│  (filesystem, fetch, databases, custom tools, etc.)          │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    Agent["AI Agent / Client"]
+
+    Agent -->|"MCP Protocol / REST API"| AEL
+
+    subgraph AEL["AEL"]
+        direction TB
+        subgraph Components[" "]
+            direction LR
+            WE["Workflow<br/>Engine"]
+            TR["Tool<br/>Registry"]
+            MF["MCP Frontend<br/>(stdio or HTTP)"]
+        end
+        Sandbox["Python Sandbox (Code Steps)"]
+        Components --> Sandbox
+    end
+
+    AEL -->|"MCP Protocol"| External
+
+    subgraph External["External MCP Servers"]
+        Tools["filesystem, fetch, databases, custom tools, etc."]
+    end
 ```
 
 ### Key Concepts

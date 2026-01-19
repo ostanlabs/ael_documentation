@@ -8,24 +8,16 @@ This page explains how AEL executes workflows—step by step, deterministically,
 
 AEL executes workflow steps **sequentially**. Each step must complete before the next begins.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  Workflow: data-pipeline                                    │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Step 1: fetch        ──────────────────────────── ✓ 1.2s  │
-│       │                                                     │
-│       ▼                                                     │
-│  Step 2: transform    ──────────────────────────── ✓ 0.3s  │
-│       │                                                     │
-│       ▼                                                     │
-│  Step 3: validate     ──────────────────────────── ✓ 0.1s  │
-│       │                                                     │
-│       ▼                                                     │
-│  Step 4: publish      ──────────────────────────── ✓ 0.4s  │
-│                                                             │
-│  Total: 2.0s                                                │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Workflow["Workflow: data-pipeline"]
+        S1["Step 1: fetch ✓ 1.2s"]
+        S2["Step 2: transform ✓ 0.3s"]
+        S3["Step 3: validate ✓ 0.1s"]
+        S4["Step 4: publish ✓ 0.4s"]
+        S1 --> S2 --> S3 --> S4
+    end
+    S4 --> Total["Total: 2.0s"]
 ```
 
 This is intentional. Sequential execution is:
@@ -39,36 +31,34 @@ This is intentional. Sequential execution is:
 
 When you call a workflow, AEL follows this sequence:
 
-```
-execute(workflow_id, inputs)
-      │
-      ▼
-1. Fetch workflow from registry
-      │
-      ▼
-2. Validate inputs against schema
-      │
-      ▼
-3. Create execution context
-      │
-      ▼
-4. For each step in order:
-      │
-      ├─► Render parameters (template engine)
-      │
-      ├─► Execute step:
-      │     ├─ Tool step → Tool Invoker → MCP Server
-      │     └─ Code step → Python Sandbox
-      │
-      ├─► On success: Store output in context
-      │
-      └─► On failure: Handle based on on_error setting
-      │
-      ▼
-5. Compute outputs from step results
-      │
-      ▼
-6. Return ExecutionResult
+```mermaid
+flowchart TB
+    Start["execute(workflow_id, inputs)"]
+    Start --> F1["1. Fetch workflow from registry"]
+    F1 --> F2["2. Validate inputs against schema"]
+    F2 --> F3["3. Create execution context"]
+    F3 --> F4["4. For each step in order"]
+
+    subgraph StepLoop["Step Execution"]
+        R["Render parameters (template engine)"]
+        E{"Execute step"}
+        Tool["Tool step → Tool Invoker → MCP Server"]
+        Code["Code step → Python Sandbox"]
+        Success["On success: Store output in context"]
+        Failure["On failure: Handle based on on_error"]
+
+        R --> E
+        E --> Tool
+        E --> Code
+        Tool --> Success
+        Code --> Success
+        Tool --> Failure
+        Code --> Failure
+    end
+
+    F4 --> StepLoop
+    StepLoop --> F5["5. Compute outputs from step results"]
+    F5 --> F6["6. Return ExecutionResult"]
 ```
 
 ---

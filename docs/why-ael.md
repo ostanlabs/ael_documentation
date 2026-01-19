@@ -138,10 +138,11 @@ A proxy routes requests. AEL **executes workflows**.
 
 ### What a Gateway Does
 
-```
-Agent → Gateway → MCP Server
-             ↓
-        (routing, auth, logging)
+```mermaid
+flowchart LR
+    Agent --> Gateway
+    Gateway --> MCP["MCP Server"]
+    Gateway -.->|"routing, auth, logging"| Gateway
 ```
 
 A gateway:
@@ -154,17 +155,20 @@ It doesn't understand what you're trying to accomplish. It just passes messages.
 
 ### What AEL Does
 
-```
-Agent → AEL → [multiple MCP servers]
-          ↓
-     (workflow execution)
-          ↓
-     Step 1: Call server A
-     Step 2: Transform result
-     Step 3: Call server B
-     Step 4: Validate output
-          ↓
-     Return final result
+```mermaid
+flowchart TB
+    Agent --> AEL
+    AEL --> Servers["Multiple MCP Servers"]
+
+    subgraph AEL["AEL (workflow execution)"]
+        S1["Step 1: Call server A"]
+        S2["Step 2: Transform result"]
+        S3["Step 3: Call server B"]
+        S4["Step 4: Validate output"]
+        S1 --> S2 --> S3 --> S4
+    end
+
+    AEL --> Result["Return final result"]
 ```
 
 AEL:
@@ -178,22 +182,20 @@ AEL:
 
 With a gateway, if you want to scrape → transform → publish, the agent must:
 
-```
-Call 1: firecrawl_scrape(...)     → 500 tokens
-  ↓ LLM reasoning                 → 200 tokens
-Call 2: (inline transformation)   → 300 tokens
-  ↓ LLM reasoning                 → 200 tokens  
-Call 3: kafka_publish(...)        → 100 tokens
+```mermaid
+flowchart TB
+    subgraph Gateway["With Gateway: 5 calls, 1,300+ tokens, non-deterministic"]
+        G1["Call 1: firecrawl_scrape → 500 tokens"]
+        G2["LLM reasoning → 200 tokens"]
+        G3["Call 2: transformation → 300 tokens"]
+        G4["LLM reasoning → 200 tokens"]
+        G5["Call 3: kafka_publish → 100 tokens"]
+        G1 --> G2 --> G3 --> G4 --> G5
+    end
 
-Total: 5 calls, 1,300+ tokens, non-deterministic
-```
-
-With AEL:
-
-```
-Call 1: workflow:scrape-transform-publish(...)  → 100 tokens
-
-Total: 1 call, 100 tokens, deterministic
+    subgraph AELBox["With AEL: 1 call, 100 tokens, deterministic"]
+        A1["workflow:scrape-transform-publish"]
+    end
 ```
 
 Gateways don't compose tools. AEL does.
@@ -208,23 +210,23 @@ Agent frameworks help you **build agents**. AEL is **infrastructure agents call*
 
 ### The Layer Difference
 
-```
-┌─────────────────────────────────────────────┐
-│  Agent Framework (LangChain, etc.)          │
-│  - Prompt management                        │
-│  - Memory systems                           │
-│  - Agent loops                              │
-│  - Chain composition                        │
-└─────────────────────┬───────────────────────┘
-                      │ calls tools
-                      ▼
-┌─────────────────────────────────────────────┐
-│  AEL (Execution Layer)                      │
-│  - Workflow execution                       │
-│  - Tool orchestration                       │
-│  - Deterministic guarantees                 │
-│  - Audit and governance                     │
-└─────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Framework["Agent Framework (LangChain, etc.)"]
+        F1["Prompt management"]
+        F2["Memory systems"]
+        F3["Agent loops"]
+        F4["Chain composition"]
+    end
+
+    Framework -->|"calls tools"| AEL
+
+    subgraph AEL["AEL (Execution Layer)"]
+        A1["Workflow execution"]
+        A2["Tool orchestration"]
+        A3["Deterministic guarantees"]
+        A4["Audit and governance"]
+    end
 ```
 
 AEL doesn't replace your agent framework. It's what your framework's agents call when they need reliable execution.

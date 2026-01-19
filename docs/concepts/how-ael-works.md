@@ -55,25 +55,24 @@ Same input, different output. Good luck testing that.
 
 AEL inverts the model. The agent makes **one decision** (which workflow to call), and AEL handles the **execution**.
 
-```
-User: "Get top stories from HN and save them to a file"
+```mermaid
+sequenceDiagram
+    participant User
+    participant Agent as Agent (LLM)
+    participant AEL
 
-Agent thinking: "This matches my scrape-and-save workflow"
-  → Agent calls: workflow:scrape-and-save(url="https://...", path="stories.txt")
-  
-  ┌─────────────────────────────────────────────────────┐
-  │  AEL executes (no LLM involved):                    │
-  │                                                     │
-  │  Step 1: firecrawl_scrape ──────────────── ✓ 1.2s  │
-  │  Step 2: extract_titles (Python code) ──── ✓ 0.1s  │
-  │  Step 3: write_file ───────────────────── ✓ 0.05s │
-  │                                                     │
-  │  Total: 1.35s, deterministic, fully traced         │
-  └─────────────────────────────────────────────────────┘
-  
-  ← Result: {saved: "stories.txt", count: 30}
+    User->>Agent: "Get top stories from HN and save them to a file"
+    Note over Agent: "This matches my scrape-and-save workflow"
+    Agent->>AEL: workflow:scrape-and-save(url="...", path="stories.txt")
 
-Total: 1 LLM round-trip, ~500 tokens, deterministic
+    Note over AEL: Step 1: firecrawl_scrape ✓ 1.2s
+    Note over AEL: Step 2: extract_titles ✓ 0.1s
+    Note over AEL: Step 3: write_file ✓ 0.05s
+    Note over AEL: Total: 1.35s, deterministic
+
+    AEL->>Agent: {saved: "stories.txt", count: 30}
+
+    Note over User,AEL: 1 LLM round-trip, ~500 tokens, deterministic
 ```
 
 ### What Changes
@@ -93,21 +92,23 @@ Total: 1 LLM round-trip, ~500 tokens, deterministic
 
 This is the core architectural insight:
 
-```
-┌────────────────────────────────────────────────────────────┐
-│                                                            │
-│   AGENT (LLM)                 AEL                          │
-│   ───────────                 ───                          │
-│   • Interprets user intent    • Executes workflows         │
-│   • Decides WHAT to do        • Handles HOW to do it       │
-│   • Selects the right tool    • Orchestrates tool calls    │
-│   • Probabilistic             • Deterministic              │
-│                                                            │
-│   "Get me the HN stories"     scrape → extract → save      │
-│           │                            │                   │
-│           └──── MCP call ──────────────┘                   │
-│                                                            │
-└────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    subgraph Agent["AGENT (LLM)"]
+        A1["• Interprets user intent"]
+        A2["• Decides WHAT to do"]
+        A3["• Selects the right tool"]
+        A4["• Probabilistic"]
+    end
+
+    subgraph AEL["AEL"]
+        B1["• Executes workflows"]
+        B2["• Handles HOW to do it"]
+        B3["• Orchestrates tool calls"]
+        B4["• Deterministic"]
+    end
+
+    Agent -->|"MCP call"| AEL
 ```
 
 The agent remains the **decision-maker**. It interprets what the user wants and picks the appropriate workflow.

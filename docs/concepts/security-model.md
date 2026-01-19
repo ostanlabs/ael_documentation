@@ -15,24 +15,24 @@ When a workflow contains a `code:` step, AEL executes Python in a sandboxed envi
 - **Resource exhaustion** — Timeouts and rate limits
 - **Privilege escalation** — Strict tool access controls
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    UNTRUSTED CODE                               │
-│                         │                                       │
-│                         ▼                                       │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │  Layer 1: Import Restrictions                           │   │
-│  │  Layer 2: Builtin Restrictions                          │   │
-│  │  Layer 3: Tool Whitelist                                │   │
-│  │  Layer 4: Rate Limiting                                 │   │
-│  │  Layer 5: Parameter Validation                          │   │
-│  │  Layer 6: Timeout Enforcement                           │   │
-│  │  Layer 7: Recursive Prevention                          │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                         │                                       │
-│                         ▼                                       │
-│                    SAFE EXECUTION                               │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    Input["UNTRUSTED CODE"]
+
+    subgraph Sandbox["Security Sandbox"]
+        L1["Layer 1: Import Restrictions"]
+        L2["Layer 2: Builtin Restrictions"]
+        L3["Layer 3: Tool Whitelist"]
+        L4["Layer 4: Rate Limiting"]
+        L5["Layer 5: Parameter Validation"]
+        L6["Layer 6: Timeout Enforcement"]
+        L7["Layer 7: Recursive Prevention"]
+
+        L1 --> L2 --> L3 --> L4 --> L5 --> L6 --> L7
+    end
+
+    Input --> Sandbox
+    Sandbox --> Output["SAFE EXECUTION"]
 ```
 
 ---

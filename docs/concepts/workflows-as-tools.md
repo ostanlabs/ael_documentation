@@ -14,30 +14,29 @@ When AEL starts:
 3. Agents discover workflows via standard MCP `tools/list`
 4. Agents call workflows via standard MCP `tools/call`
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  AEL Startup                                                    │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  1. Load workflows from ./workflows/                            │
-│       │                                                         │
-│       ├── scrape-and-publish.yaml                              │
-│       ├── data-enrichment.yaml                                 │
-│       └── report-generator.yaml                                │
-│       │                                                         │
-│       ▼                                                         │
-│  2. Register as MCP tools                                       │
-│       │                                                         │
-│       ├── workflow:scrape-and-publish                          │
-│       ├── workflow:data-enrichment                             │
-│       └── workflow:report-generator                            │
-│       │                                                         │
-│       ▼                                                         │
-│  3. Agent connects, calls tools/list                            │
-│       │                                                         │
-│       └── Sees all workflows alongside native tools            │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Startup["AEL Startup"]
+        direction TB
+
+        subgraph Load["1. Load workflows from ./workflows/"]
+            W1["scrape-and-publish.yaml"]
+            W2["data-enrichment.yaml"]
+            W3["report-generator.yaml"]
+        end
+
+        subgraph Register["2. Register as MCP tools"]
+            T1["workflow:scrape-and-publish"]
+            T2["workflow:data-enrichment"]
+            T3["workflow:report-generator"]
+        end
+
+        subgraph Discover["3. Agent connects, calls tools/list"]
+            D1["Sees all workflows alongside native tools"]
+        end
+
+        Load --> Register --> Discover
+    end
 ```
 
 ---
@@ -91,26 +90,25 @@ steps:
 
 Multiple agents can share the same AEL instance. All agents see the same workflows.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         AEL Instance                            │
-│                                                                 │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │  Registered Workflows                                    │   │
-│  │  • workflow:scrape-and-publish                          │   │
-│  │  • workflow:data-enrichment                             │   │
-│  │  • workflow:report-generator                            │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                                                                 │
-│         ▲              ▲              ▲                        │
-│         │              │              │                        │
-│    ┌────┴────┐    ┌────┴────┐    ┌────┴────┐                  │
-│    │ Agent A │    │ Agent B │    │ Agent C │                  │
-│    │ (Claude)│    │ (GPT-4) │    │ (Custom)│                  │
-│    └─────────┘    └─────────┘    └─────────┘                  │
-│                                                                 │
-│    All agents see the same tools, same governance              │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart BT
+    subgraph Agents["All agents see the same tools, same governance"]
+        A["Agent A<br/>(Claude)"]
+        B["Agent B<br/>(GPT-4)"]
+        C["Agent C<br/>(Custom)"]
+    end
+
+    subgraph AEL["AEL Instance"]
+        subgraph Workflows["Registered Workflows"]
+            W1["workflow:scrape-and-publish"]
+            W2["workflow:data-enrichment"]
+            W3["workflow:report-generator"]
+        end
+    end
+
+    A --> AEL
+    B --> AEL
+    C --> AEL
 ```
 
 ---
