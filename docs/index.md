@@ -64,6 +64,8 @@ flowchart TB
     AEL --> Result["Result returned to agent"]
 ```
 
+*The ✓ marks indicate guarantees AEL provides: deterministic execution (same inputs → same outputs), complete audit trails, and automatic retry/error handling.*
+
 The agent doesn't orchestrate. It delegates to infrastructure that executes reliably.
 
 **[Learn how this works →](concepts/how-ael-works.md)**

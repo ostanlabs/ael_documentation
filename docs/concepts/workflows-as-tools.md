@@ -309,3 +309,5 @@ Agents can use the `retryable` flag to decide whether to retry.
 - **[How AEL Works](./how-ael-works.md)** — The planning vs execution separation
 - **[Execution Model](./execution-model.md)** — How workflows execute
 - **[Workflow Schema](../reference/workflow-schema.md)** — Complete YAML reference
+
+**← [Security Model](./security-model.md)** | **[Workflow Schema →](../reference/workflow-schema.md)**

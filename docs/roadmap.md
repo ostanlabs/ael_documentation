@@ -38,6 +38,7 @@ The open-source release includes everything you need to run deterministic workfl
 ## Phase 2: Plugin Framework (In Progress)
 
 **Status:** 🔜 Current focus
+**Timeline:** Q1 2026 (January–March)
 
 | Deliverable | Description |
 |-------------|-------------|

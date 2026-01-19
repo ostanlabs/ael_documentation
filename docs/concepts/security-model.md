@@ -249,7 +249,7 @@ The following security features are planned for Enterprise:
 If you discover a security vulnerability in AEL, please report it responsibly:
 
 1. **Do not** open a public GitHub issue
-2. Email security concerns to the maintainers
+2. Email security concerns to **security@ostanlabs.com**
 3. Include steps to reproduce
 4. Allow time for a fix before public disclosure
 
@@ -260,3 +260,5 @@ If you discover a security vulnerability in AEL, please report it responsibly:
 - **[Execution Model](./execution-model.md)** — How workflows execute
 - **[Workflows as Tools](./workflows-as-tools.md)** — MCP integration
 - **[Workflow Schema](../reference/workflow-schema.md)** — Complete YAML reference
+
+**← [Execution Model](./execution-model.md)** | **[Workflows as Tools →](./workflows-as-tools.md)**

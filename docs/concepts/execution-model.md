@@ -313,3 +313,5 @@ The following features are planned for future releases:
 - **[Security Model](./security-model.md)** — How code steps are sandboxed
 - **[Workflows as Tools](./workflows-as-tools.md)** — How workflows become MCP tools
 - **[Workflow Schema](../reference/workflow-schema.md)** — Complete YAML reference
+
+**← [How AEL Works](./how-ael-works.md)** | **[Security Model →](./security-model.md)**

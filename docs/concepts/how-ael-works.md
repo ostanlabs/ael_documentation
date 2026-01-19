@@ -235,7 +235,9 @@ The agent doesn't bypass governance—it calls AEL, and AEL enforces policy.
 
 ## Next Steps
 
-- **[Quickstart](../getting-started/quickstart.md)** — Run your first workflow
 - **[Execution Model](./execution-model.md)** — Detailed execution semantics
+- **[Workflows as Tools](./workflows-as-tools.md)** — MCP integration
 - **[Why AEL?](../why-ael.md)** — Comparison with alternatives
+
+**← [Back to Home](../index.md)**
 
