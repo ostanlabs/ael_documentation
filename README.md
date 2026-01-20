@@ -1,6 +1,6 @@
 # AEL Documentation
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/ostanlabs/deploy-status)](https://app.netlify.com/projects/ostanlabs/deploys)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/b57f9264-9998-489b-b8bf-61a2f41171ac/deploy-status)](https://app.netlify.com/projects/ostanlabs/deploys)
 
 Public documentation for the [Agent Execution Layer (AEL)](https://github.com/ostanlabs/agent-execution-layer).
 
@@ -34,6 +34,7 @@ Documentation is automatically deployed via **Netlify** on every push to `main`.
 - **Python Version:** 3.11
 
 ---
+
 
 ## Local Development
 
