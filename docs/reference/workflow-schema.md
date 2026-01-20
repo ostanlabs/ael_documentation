@@ -2,6 +2,133 @@
 
 Complete YAML schema reference for AEL workflows.
 
+---
+
+## Canonical Example
+
+This example shows every field. Copy it as a starting point for your workflows.
+
+```yaml
+# ─────────────────────────────────────────────────────────────────
+# METADATA (required)
+# ─────────────────────────────────────────────────────────────────
+name: data-pipeline                    # Required: Workflow identifier
+version: "1.0.0"                       # Required: Semantic version
+description: "Fetch, transform, and validate data"  # Optional
+
+# ─────────────────────────────────────────────────────────────────
+# PACKAGES (optional)
+# ─────────────────────────────────────────────────────────────────
+packages:
+  profile: standard                    # minimal | standard | data_science
+  additional:                          # Extra packages to allow
+    - requests
+
+# ─────────────────────────────────────────────────────────────────
+# DEFAULTS (optional)
+# ─────────────────────────────────────────────────────────────────
+defaults:
+  timeout: 30                          # Default step timeout (seconds)
+  on_error: fail                       # fail | continue | retry
+  retry:                               # Retry config (when on_error: retry)
+    max_attempts: 3
+    initial_delay: 1.0
+    max_delay: 30.0
+    backoff_multiplier: 2.0
+
+# ─────────────────────────────────────────────────────────────────
+# INPUTS (optional, but usually needed)
+# Format: Array of input definitions
+# ─────────────────────────────────────────────────────────────────
+inputs:
+  # Simple syntax: just the name (required, type: string)
+  - url
+
+  # With default value (makes it optional)
+  - format: "json"
+
+  # Full definition with all options
+  - count:
+      type: integer                    # string | integer | number | boolean | array | object
+      required: false                  # Default: true
+      default: 10                      # Default value
+      description: "Number of items"   # For documentation
+      minimum: 1                       # Validation: minimum value
+      maximum: 100                     # Validation: maximum value
+
+  # Enum constraint
+  - output_format:
+      type: string
+      enum: ["json", "csv", "xml"]     # Allowed values
+      default: "json"
+
+  # Pattern constraint
+  - email:
+      type: string
+      pattern: "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$"
+
+# ─────────────────────────────────────────────────────────────────
+# STEPS (required, at least one)
+# ─────────────────────────────────────────────────────────────────
+steps:
+  # Tool step: calls an MCP tool
+  - id: fetch                          # Required: unique step identifier
+    tool: http_get                     # MCP tool name
+    params:                            # Tool parameters (templates allowed)
+      url: "{{ inputs.url }}"
+      headers:
+        Accept: "application/json"
+    timeout: 60                        # Override default timeout
+    on_error: retry                    # Override default error handling
+    retry:
+      max_attempts: 3
+      initial_delay: 2.0
+
+  # Code step: runs Python in sandbox
+  - id: transform
+    code: |
+      import json
+
+      # Access previous step output
+      data = context.steps['fetch'].output
+
+      # Access inputs
+      limit = context.inputs.get('count', 10)
+
+      # Process data
+      items = data.get('items', [])[:limit]
+
+      # Return result (available as steps.transform.output)
+      return {"items": items, "count": len(items)}
+
+  # Step with dependency
+  - id: validate
+    depends_on: [transform]            # Wait for these steps first
+    code: |
+      data = context.steps['transform'].output
+      if data['count'] == 0:
+          raise ValueError("No items found")
+      return {"valid": True, "count": data['count']}
+
+# ─────────────────────────────────────────────────────────────────
+# OUTPUTS (optional)
+# ─────────────────────────────────────────────────────────────────
+
+# Option 1: Single output (simple)
+output: "{{ steps.validate.output }}"
+
+# Option 2: Multiple named outputs (use this OR output, not both)
+# outputs:
+#   - name: result
+#     from_path: steps.validate.output
+#     description: "Validation result"
+#   - name: item_count
+#     value: "{{ steps.transform.output.count }}"
+#     description: "Number of items processed"
+```
+
+---
+
 ## Top-Level Structure
 
 ```yaml
@@ -15,7 +142,7 @@ packages: object      # Python package configuration
 defaults: object      # Default step settings
 
 # Schema
-inputs: array         # Input definitions
+inputs: array         # Input definitions (array format)
 steps: array          # Step definitions (required, at least one)
 outputs: array        # Output definitions (optional)
 output: string        # Single output expression (alternative to outputs)
@@ -83,59 +210,94 @@ defaults:
 
 ## Inputs
 
+**Format:** `inputs` is an **array** (list) of input definitions.
+
+AEL supports three syntaxes for input definitions:
+
+### Syntax 1: Simple String (Required Input)
+
 ```yaml
 inputs:
-  input_name:
-    type: string        # Type: string | integer | number | boolean | array | object
-    required: boolean   # Required input (default: true)
-    default: any        # Default value (makes input optional)
-    description: string # Human-readable description
-    
-    # Validation (optional)
-    enum: array         # Allowed values
-    pattern: string     # Regex pattern (strings only)
-    minimum: number     # Minimum value (numbers only)
-    maximum: number     # Maximum value (numbers only)
+  - url                    # Required string input named "url"
+  - topic                  # Required string input named "topic"
+```
+
+### Syntax 2: Name with Default (Optional Input)
+
+```yaml
+inputs:
+  - format: "json"         # Optional, defaults to "json"
+  - count: 10              # Optional, defaults to 10
+```
+
+### Syntax 3: Full Definition (All Options)
+
+```yaml
+inputs:
+  - url:
+      type: string         # Required: string | integer | number | boolean | array | object
+      required: true       # Optional: default is true
+      default: null        # Optional: default value (makes input optional)
+      description: "URL"   # Optional: human-readable description
+      enum: [...]          # Optional: allowed values
+      pattern: "^https?"   # Optional: regex pattern (strings only)
+      minimum: 1           # Optional: minimum value (numbers only)
+      maximum: 100         # Optional: maximum value (numbers only)
 ```
 
 ### Input Types
 
-| Type | JSON Type | Example |
-|------|-----------|---------|
-| `string` | string | `"hello"` |
-| `integer` | number | `42` |
-| `number` | number | `3.14` |
-| `boolean` | boolean | `true` |
-| `array` | array | `[1, 2, 3]` |
-| `object` | object | `{"key": "value"}` |
+| Type | JSON Type | Example | Notes |
+|------|-----------|---------|-------|
+| `string` | string | `"hello"` | Default type if not specified |
+| `integer` | number | `42` | Whole numbers only |
+| `number` | number | `3.14` | Any numeric value |
+| `boolean` | boolean | `true` | true or false |
+| `array` | array | `[1, 2, 3]` | JSON array |
+| `object` | object | `{"key": "value"}` | JSON object |
 
-### Input Examples
+### Complete Input Examples
 
 ```yaml
 inputs:
-  # Required string
-  name:
-    type: string
-    description: User name
+  # Simple required inputs
+  - url
+  - topic
 
-  # Optional with default
-  count:
-    type: integer
-    default: 10
-    minimum: 1
-    maximum: 100
+  # With default values
+  - format: "json"
+  - retries: 3
 
-  # Enum (restricted values)
-  format:
-    type: string
-    enum: ["json", "csv", "xml"]
-    default: "json"
+  # Full definitions
+  - count:
+      type: integer
+      required: false
+      default: 10
+      description: "Number of items to fetch"
+      minimum: 1
+      maximum: 100
 
-  # Pattern validation
-  email:
-    type: string
-    pattern: "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$"
+  - output_format:
+      type: string
+      enum: ["json", "csv", "xml"]
+      default: "json"
+      description: "Output format"
+
+  - email:
+      type: string
+      required: true
+      description: "Contact email"
+      pattern: "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$"
 ```
+
+### Required vs Optional
+
+| Condition | Required? |
+|-----------|-----------|
+| Simple string syntax (`- url`) | ✅ Required |
+| Has `default` value | ❌ Optional |
+| `required: true` (explicit) | ✅ Required |
+| `required: false` (explicit) | ❌ Optional |
 
 ## Steps
 
