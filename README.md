@@ -121,13 +121,6 @@ docs/
 3. Open a PR — Netlify will create a deploy preview
 4. Get review and merge
 
-### Style Guidelines
-
-- **Tone:** Assertive, lead with WHY
-- **Positioning:** "LLMs plan. AEL executes."
-- **Limitations:** Always mark what's NOT implemented with links to roadmap
-- **Diagrams:** Use Mermaid format (not ASCII art)
-
 ---
 
 ## License
