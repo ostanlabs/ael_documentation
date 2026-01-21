@@ -1,10 +1,10 @@
 # Quickstart
 
-Get AEL running in 5 minutes.
+Get Ploston running in 5 minutes.
 
 ## Prerequisites
 
-- AEL installed from source ([Installation Guide](installation.md))
+- Ploston installed from source ([Installation Guide](installation.md))
 - Terminal access
 
 ## Step 1: Navigate to Project
@@ -15,7 +15,7 @@ cd agent-execution-layer
 
 ## Step 2: Create Configuration
 
-Create `ael-config.yaml`:
+Create `ploston-config.yaml`:
 
 ```yaml
 workflows:
@@ -51,7 +51,7 @@ output: "{{ steps.greet.output }}"
 ## Step 4: Validate the Workflow
 
 ```bash
-uv run ael validate workflows/hello.yaml
+ploston validate workflows/hello.yaml
 ```
 
 Expected output:
@@ -62,7 +62,7 @@ Expected output:
 ## Step 5: Run the Workflow
 
 ```bash
-uv run ael run workflows/hello.yaml
+ploston run workflows/hello.yaml
 ```
 
 Expected output:
@@ -73,7 +73,7 @@ Hello, World!
 Run with custom input:
 
 ```bash
-uv run ael run workflows/hello.yaml -i name=Alice
+ploston run workflows/hello.yaml -i name=Alice
 ```
 
 Expected output:
@@ -83,14 +83,14 @@ Hello, Alice!
 
 ## Step 6: Start as MCP Server (Optional)
 
-Start AEL as an MCP server for AI agent integration:
+Start Ploston as an MCP server for AI agent integration:
 
 ```bash
 # Start with stdio transport (for AI agent integration)
-uv run ael serve
+ploston serve
 
 # Or start with HTTP transport (for REST access)
-uv run ael serve --transport http --port 8080
+ploston serve --transport http --port 8080
 ```
 
 The workflow is now available as an MCP tool named `workflow:hello`.
@@ -99,10 +99,10 @@ The workflow is now available as an MCP tool named `workflow:hello`.
 
 You've successfully:
 
-- ✅ Created an AEL project
+- ✅ Created a Ploston project
 - ✅ Written a workflow
 - ✅ Validated and executed it
-- ✅ Started AEL as an MCP server
+- ✅ Started Ploston as an MCP server
 
 ### Continue Learning
 

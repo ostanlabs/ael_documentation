@@ -1,30 +1,30 @@
 # Troubleshooting Guide
 
-Common issues and solutions when using AEL.
+Common issues and solutions when using Ploston.
 
 ## Installation Issues
 
-### "Command not found: ael"
+### "Command not found: ploston"
 
-**Problem:** After running `uv sync`, the `ael` command is not found.
+**Problem:** After running `uv sync`, the `ploston` command is not found.
 
 **Solution:** Use one of these methods to run the CLI:
 
 ```bash
 # Option 1: Use uv run (recommended)
-uv run ael --help
+ploston --help
 
 # Option 2: Activate virtual environment
 source .venv/bin/activate
-ael --help
+ploston --help
 
 # Option 3: Direct path
-.venv/bin/ael --help
+.venv/bin/ploston --help
 ```
 
 ### "Python 3.12+ required"
 
-**Problem:** AEL requires Python 3.12 or higher.
+**Problem:** Ploston requires Python 3.12 or higher.
 
 **Solution:**
 
@@ -78,19 +78,19 @@ uv sync
 
 ### "No config found"
 
-**Problem:** AEL cannot find configuration file.
+**Problem:** Ploston cannot find configuration file.
 
 **Solution:**
 
-AEL searches for config in this order:
-1. `AEL_CONFIG_PATH` environment variable
-2. `./ael-config.yaml` (current directory)
-3. `~/.ael/config.yaml` (home directory)
+Ploston searches for config in this order:
+1. `PLOSTON_CONFIG_PATH` environment variable
+2. `./ploston-config.yaml` (current directory)
+3. `~/.ploston/config.yaml` (home directory)
 
 Create a minimal config:
 
 ```bash
-cat > ael-config.yaml << EOF
+cat > ploston-config.yaml << EOF
 workflows:
   directory: "./workflows"
 EOF
@@ -100,7 +100,7 @@ mkdir -p workflows
 
 ### "Configuration mode" instead of "Running mode"
 
-**Problem:** AEL starts in configuration mode when you expect running mode.
+**Problem:** Ploston starts in configuration mode when you expect running mode.
 
 **Cause:** No valid config file found.
 
@@ -108,13 +108,13 @@ mkdir -p workflows
 
 ```bash
 # Check if config exists
-ls -la ael-config.yaml
+ls -la ploston-config.yaml
 
 # Verify config is valid YAML
-python -c "import yaml; yaml.safe_load(open('ael-config.yaml'))"
+python -c "import yaml; yaml.safe_load(open('ploston-config.yaml'))"
 
 # Force running mode (will fail if no config)
-uv run ael serve --mode running
+ploston serve --mode running
 ```
 
 ### "Invalid configuration"
@@ -125,10 +125,10 @@ uv run ael serve --mode running
 
 ```bash
 # Check YAML syntax
-python -c "import yaml; yaml.safe_load(open('ael-config.yaml'))"
+python -c "import yaml; yaml.safe_load(open('ploston-config.yaml'))"
 
-# Validate with AEL
-uv run ael config show
+# Validate with Ploston
+ploston config show
 ```
 
 Common config errors:
@@ -146,7 +146,7 @@ Common config errors:
 
 ```bash
 # Validate workflow
-uv run ael validate workflows/my-workflow.yaml
+ploston validate workflows/my-workflow.yaml
 ```
 
 Check for common issues:
@@ -163,13 +163,13 @@ Check for common issues:
 
 ```bash
 # List available tools
-uv run ael tools list
+ploston tools list
 
 # Check if MCP server is configured
-uv run ael config show --section tools
+ploston config show --section tools
 
 # Refresh tools from MCP servers
-uv run ael tools refresh
+ploston tools refresh
 ```
 
 ### "Step timeout"
@@ -241,7 +241,7 @@ tools:
 
 ```bash
 # Check tool schema
-uv run ael tools show tool_name
+ploston tools show tool_name
 
 # Verify your parameters match the schema
 ```
@@ -310,7 +310,7 @@ python_exec:
 
 ```bash
 # Check logs
-docker compose logs ael
+docker compose logs ploston
 
 # Verify config mount
 docker compose config
@@ -350,7 +350,7 @@ If you are still stuck:
 3. **Ask for help:** [GitHub Discussions](https://github.com/ostanlabs/agent-execution-layer/discussions)
 
 4. **Report a bug:** Include:
-   - AEL version (`uv run ael version`)
+   - Ploston version (`ploston version`)
    - Python version (`python --version`)
    - OS and version
    - Full error message

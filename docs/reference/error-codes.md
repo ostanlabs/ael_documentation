@@ -1,10 +1,10 @@
 # Error Codes Reference
 
-Complete reference for AEL error codes and their resolutions.
+Complete reference for Ploston error codes and their resolutions.
 
 ## Error Structure
 
-All AEL errors include:
+All Ploston errors include:
 
 | Field | Description |
 |-------|-------------|
@@ -25,9 +25,9 @@ All AEL errors include:
 
 **Resolution:**
 1. Check that the MCP server is running
-2. Verify the tool is registered: `ael tools list`
+2. Verify the tool is registered: `ploston tools list`
 3. Check MCP server logs for errors
-4. Try refreshing tools: `ael tools refresh`
+4. Try refreshing tools: `ploston tools refresh`
 
 ### TOOL_TIMEOUT
 
@@ -48,7 +48,7 @@ All AEL errors include:
 
 **Resolution:**
 1. Check the tool parameters match the schema
-2. View tool schema: `ael tools show {tool_name}`
+2. View tool schema: `ploston tools show {tool_name}`
 3. Verify required parameters are provided
 
 ### TOOL_FAILED
@@ -139,7 +139,7 @@ All AEL errors include:
 **Cause:** The tool parameters do not match the expected schema.
 
 **Resolution:**
-1. Check tool schema: `ael tools show {tool_name}`
+1. Check tool schema: `ploston tools show {tool_name}`
 2. Verify parameter types
 3. Provide all required parameters
 
@@ -151,7 +151,7 @@ All AEL errors include:
 
 **Resolution:**
 1. Use dot notation: `logging.level`
-2. Check available paths: `ael config show`
+2. Check available paths: `ploston config show`
 
 ## Workflow Errors (WORKFLOW)
 
@@ -162,7 +162,7 @@ All AEL errors include:
 **Cause:** The requested workflow does not exist.
 
 **Resolution:**
-1. Check workflow ID: `ael workflows list`
+1. Check workflow ID: `ploston workflows list`
 2. Verify workflow file exists
 3. Check workflows directory in config
 
@@ -185,7 +185,7 @@ All AEL errors include:
 **Resolution:**
 1. Review depends_on relationships
 2. Remove circular references
-3. Validate workflow: `ael validate workflow.yaml`
+3. Validate workflow: `ploston validate workflow.yaml`
 
 ### WORKFLOW_TIMEOUT
 
@@ -202,12 +202,12 @@ All AEL errors include:
 
 ### INTERNAL_ERROR
 
-**Message:** Internal AEL error
+**Message:** Internal Ploston error
 
-**Cause:** An unexpected error occurred in the AEL engine.
+**Cause:** An unexpected error occurred in the Ploston engine.
 
 **Resolution:**
-1. Check AEL logs for details
+1. Check Ploston logs for details
 2. Report issue on GitHub with logs
 
 ### MCP_CONNECTION_FAILED
@@ -225,10 +225,10 @@ All AEL errors include:
 
 **Message:** Invalid configuration
 
-**Cause:** The AEL configuration is invalid.
+**Cause:** The Ploston configuration is invalid.
 
 **Resolution:**
-1. Validate config: `ael config show`
+1. Validate config: `ploston config show`
 2. Check YAML syntax
 3. See [Configuration Reference](config-reference.md)
 

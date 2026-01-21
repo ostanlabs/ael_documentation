@@ -1,6 +1,6 @@
 # Workflow Schema Reference
 
-Complete YAML schema reference for AEL workflows.
+Complete YAML schema reference for Ploston workflows.
 
 ---
 
@@ -212,7 +212,7 @@ defaults:
 
 **Format:** `inputs` is an **array** (list) of input definitions.
 
-AEL supports three syntaxes for input definitions:
+Ploston supports three syntaxes for input definitions:
 
 ### Syntax 1: Simple String (Required Input)
 

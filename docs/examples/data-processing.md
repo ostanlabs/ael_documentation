@@ -139,7 +139,7 @@ output: "{{ steps.format.output }}"
 ### Run
 
 ```bash
-uv run ael run workflows/data-process.yaml \
+ploston run workflows/data-process.yaml \
   -i data='[{"id":1,"name":"item a","value":100,"category":"electronics","active":true},{"id":2,"name":"item b","value":50,"category":"clothing","active":true},{"id":4,"name":"item d","value":200,"category":"electronics","active":true}]' \
   -i group_by="category"
 ```

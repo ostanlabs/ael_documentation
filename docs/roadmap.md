@@ -1,6 +1,6 @@
 # Roadmap
 
-AEL is actively developed. This page shows what's available now and what's coming.
+Ploston is actively developed. This page shows what's available now and what's coming.
 
 ---
 
@@ -28,8 +28,8 @@ The open-source release includes everything you need to run deterministic workfl
 ### Developer Experience ✅
 | Feature | Description |
 |---------|-------------|
-| **CLI Interface** | `ael run`, `ael validate`, `ael list` commands |
-| **Self-Configuration Tools** | Manage AEL via MCP tools |
+| **CLI Interface** | `ploston run`, `ploston validate`, `ploston list` commands |
+| **Self-Configuration Tools** | Manage Ploston via MCP tools |
 | **Structured Logging** | JSON-formatted execution logs |
 | **Error Registry** | Consistent error codes and messages |
 
@@ -42,7 +42,7 @@ The open-source release includes everything you need to run deterministic workfl
 
 | Deliverable | Description |
 |-------------|-------------|
-| **Plugin System** | `AELPlugin` base class for extensibility |
+| **Plugin System** | `PlostonPlugin` base class for extensibility |
 | **Plugin Registry** | Discover and load plugins |
 | **Hook System** | Pre/post execution hooks |
 | **OSS Repo Public** | Apache 2.0 license, public GitHub |

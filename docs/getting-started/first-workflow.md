@@ -98,7 +98,7 @@ References the output of the `format` step using Jinja2 templating.
 ## Step 3: Validate
 
 ```bash
-ael validate workflows/number-stats.yaml
+ploston validate workflows/number-stats.yaml
 ```
 
 ## Step 4: Run
@@ -106,13 +106,13 @@ ael validate workflows/number-stats.yaml
 With default input:
 
 ```bash
-ael run workflows/number-stats.yaml
+ploston run workflows/number-stats.yaml
 ```
 
 With custom input:
 
 ```bash
-ael run workflows/number-stats.yaml -i "numbers=10,20,30,40,50"
+ploston run workflows/number-stats.yaml -i "numbers=10,20,30,40,50"
 ```
 
 Expected output:

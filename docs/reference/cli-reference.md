@@ -1,21 +1,21 @@
 # CLI Reference
 
-Complete reference for all AEL command-line interface commands.
+Complete reference for all Ploston command-line interface commands.
 
 ## Running the CLI
 
-After installing AEL from source, use one of these methods:
+After installing Ploston from source, use one of these methods:
 
 ```bash
 # Recommended: Use uv run
-uv run ael <command>
+ploston <command>
 
 # Or activate venv first
 source .venv/bin/activate
-ael <command>
+ploston <command>
 
 # Or use direct path
-.venv/bin/ael <command>
+.venv/bin/ploston <command>
 ```
 
 ## Global Options
@@ -32,12 +32,12 @@ These options apply to all commands:
 
 ## Commands
 
-### `ael serve`
+### `ploston serve`
 
-Start AEL as an MCP server.
+Start Ploston as an MCP server.
 
 ```bash
-uv run ael serve [OPTIONS]
+ploston serve [OPTIONS]
 ```
 
 **Options:**
@@ -54,44 +54,44 @@ uv run ael serve [OPTIONS]
 
 ```bash
 # Start with stdio transport (default, for AI agent integration)
-uv run ael serve
+ploston serve
 
 # Start with HTTP transport (for REST access)
-uv run ael serve --transport http --port 8080
+ploston serve --transport http --port 8080
 
 # Start without file watching
-uv run ael serve --no-watch
+ploston serve --no-watch
 
 # Force configuration mode (for initial setup)
-uv run ael serve --mode configuration
+ploston serve --mode configuration
 
 # Force running mode (fails if no config)
-uv run ael serve --mode running
+ploston serve --mode running
 ```
 
 **Startup Output:**
 
 When config is found (running mode):
 ```
-[AEL] Config loaded from: ./ael-config.yaml
-[AEL] Mode: running
-[AEL] MCP servers: filesystem, github (2)
-[AEL] Workflows: 5 registered
+[Ploston] Config loaded from: ./ploston-config.yaml
+[Ploston] Mode: running
+[Ploston] MCP servers: filesystem, github (2)
+[Ploston] Workflows: 5 registered
 ```
 
 When no config found (configuration mode):
 ```
-[AEL] No config found (searched: ./ael-config.yaml, ~/.ael/config.yaml)
-[AEL] Mode: configuration
-[AEL] Use config tools to set up AEL
+[Ploston] No config found (searched: ./ploston-config.yaml, ~/.ploston/config.yaml)
+[Ploston] Mode: configuration
+[Ploston] Use config tools to set up Ploston
 ```
 
-### `ael run`
+### `ploston run`
 
 Execute a workflow.
 
 ```bash
-uv run ael run WORKFLOW [OPTIONS]
+ploston run WORKFLOW [OPTIONS]
 ```
 
 **Arguments:**
@@ -112,24 +112,24 @@ uv run ael run WORKFLOW [OPTIONS]
 
 ```bash
 # Run with default inputs
-uv run ael run workflows/hello.yaml
+ploston run workflows/hello.yaml
 
 # Run with input parameters
-uv run ael run workflows/hello.yaml -i name=Alice -i count=5
+ploston run workflows/hello.yaml -i name=Alice -i count=5
 
 # Run with inputs from file
-uv run ael run workflows/process.yaml --input-file inputs.json
+ploston run workflows/process.yaml --input-file inputs.json
 
 # Run with timeout
-uv run ael run workflows/long-task.yaml --timeout 300
+ploston run workflows/long-task.yaml --timeout 300
 ```
 
-### `ael validate`
+### `ploston validate`
 
 Validate a workflow YAML file.
 
 ```bash
-uv run ael validate FILE [OPTIONS]
+ploston validate FILE [OPTIONS]
 ```
 
 **Options:**
@@ -143,26 +143,26 @@ uv run ael validate FILE [OPTIONS]
 
 ```bash
 # Basic validation
-uv run ael validate workflows/my-workflow.yaml
+ploston validate workflows/my-workflow.yaml
 
 # Strict validation
-uv run ael validate workflows/my-workflow.yaml --strict
+ploston validate workflows/my-workflow.yaml --strict
 ```
 
-### `ael version`
+### `ploston version`
 
 Show version information.
 
 ```bash
-uv run ael version
+ploston version
 ```
 
-### `ael api`
+### `ploston api`
 
-Start AEL REST API server.
+Start Ploston REST API server.
 
 ```bash
-uv run ael api [OPTIONS]
+ploston api [OPTIONS]
 ```
 
 **Options:**
@@ -181,16 +181,16 @@ uv run ael api [OPTIONS]
 
 ```bash
 # Start API server
-uv run ael api --port 8080
+ploston api --port 8080
 
 # Start with authentication
-uv run ael api --require-auth
+ploston api --require-auth
 
 # Start with rate limiting
-uv run ael api --rate-limit 100
+ploston api --rate-limit 100
 
 # With execution history storage
-uv run ael api --db ./ael-executions.db
+ploston api --db ./ploston-executions.db
 ```
 
 **API Endpoints:**
@@ -204,12 +204,12 @@ uv run ael api --db ./ael-executions.db
 | `/api/v1/health` | GET | Health check |
 | `/docs` | GET | OpenAPI documentation |
 
-### `ael config show`
+### `ploston config show`
 
 Show current configuration.
 
 ```bash
-uv run ael config show [OPTIONS]
+ploston config show [OPTIONS]
 ```
 
 **Options:**
@@ -222,44 +222,44 @@ uv run ael config show [OPTIONS]
 
 ```bash
 # Show all configuration
-uv run ael config show
+ploston config show
 
 # Show specific section
-uv run ael config show --section mcp
-uv run ael config show --section logging
+ploston config show --section mcp
+ploston config show --section logging
 
 # Output as JSON
-uv run ael --json config show
+ploston --json config show
 ```
 
-### `ael workflows list`
+### `ploston workflows list`
 
 List registered workflows.
 
 ```bash
-uv run ael workflows list
+ploston workflows list
 ```
 
-### `ael workflows show`
+### `ploston workflows show`
 
 Show workflow details.
 
 ```bash
-uv run ael workflows show NAME
+ploston workflows show NAME
 ```
 
 **Example:**
 
 ```bash
-uv run ael workflows show hello-world
+ploston workflows show hello-world
 ```
 
-### `ael tools list`
+### `ploston tools list`
 
 List available tools.
 
 ```bash
-uv run ael tools list [OPTIONS]
+ploston tools list [OPTIONS]
 ```
 
 **Options:**
@@ -270,20 +270,20 @@ uv run ael tools list [OPTIONS]
 | `--server NAME` | Filter by MCP server name |
 | `--status STATUS` | Filter by status: `available` or `unavailable` |
 
-### `ael tools show`
+### `ploston tools show`
 
 Show tool details.
 
 ```bash
-uv run ael tools show NAME
+ploston tools show NAME
 ```
 
-### `ael tools refresh`
+### `ploston tools refresh`
 
 Refresh tool schemas from MCP servers.
 
 ```bash
-uv run ael tools refresh [OPTIONS]
+ploston tools refresh [OPTIONS]
 ```
 
 **Options:**

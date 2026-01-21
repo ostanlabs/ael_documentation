@@ -12,12 +12,12 @@ This workflow:
 ## Prerequisites
 
 - MCP server with fetch tool (e.g., `@modelcontextprotocol/server-fetch`)
-- AEL configured with the MCP server
+- Ploston configured with the MCP server
 
 ## Configuration
 
 ```yaml
-# ael-config.yaml
+# ploston-config.yaml
 tools:
   mcp_servers:
     fetch:
@@ -88,13 +88,13 @@ output: "{{ steps.format.output }}"
 ### Validate
 
 ```bash
-uv run ael validate workflows/web-scrape.yaml
+ploston validate workflows/web-scrape.yaml
 ```
 
 ### Run
 
 ```bash
-uv run ael run workflows/web-scrape.yaml \
+ploston run workflows/web-scrape.yaml \
   -i url="https://example.com" \
   -i selector="title"
 ```

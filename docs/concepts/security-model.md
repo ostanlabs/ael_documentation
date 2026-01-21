@@ -1,14 +1,14 @@
 # Security Model
 
-AEL executes arbitrary Python code from workflows. This requires defense in depth.
+Ploston executes arbitrary Python code from workflows. This requires defense in depth.
 
-This page explains AEL's 7-layer security model—what each layer does and why it exists.
+This page explains Ploston's 7-layer security model—what each layer does and why it exists.
 
 ---
 
 ## Overview
 
-When a workflow contains a `code:` step, AEL executes Python in a sandboxed environment. The sandbox enforces multiple security layers to prevent:
+When a workflow contains a `code:` step, Ploston executes Python in a sandboxed environment. The sandbox enforces multiple security layers to prevent:
 
 - **System access** — No file system, network, or process operations
 - **Code injection** — No eval, exec, or dynamic imports
@@ -246,7 +246,7 @@ The following security features are planned for Enterprise:
 
 ## Reporting Security Issues
 
-If you discover a security vulnerability in AEL, please report it responsibly:
+If you discover a security vulnerability in Ploston, please report it responsibly:
 
 1. **Do not** open a public GitHub issue
 2. Email security concerns to **security@ostanlabs.com**

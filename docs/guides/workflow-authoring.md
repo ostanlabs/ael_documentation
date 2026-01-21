@@ -1,6 +1,6 @@
 # Workflow Authoring Guide
 
-Complete guide to writing AEL workflows.
+Complete guide to writing Ploston workflows.
 
 ## Workflow Structure
 

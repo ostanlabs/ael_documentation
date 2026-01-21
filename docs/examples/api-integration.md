@@ -18,7 +18,7 @@ This workflow:
 ## Configuration
 
 ```yaml
-# ael-config.yaml
+# ploston-config.yaml
 tools:
   mcp_servers:
     fetch:
@@ -136,7 +136,7 @@ output: "{{ steps.combine.output }}"
 ### Run
 
 ```bash
-uv run ael run workflows/api-integration.yaml \
+ploston run workflows/api-integration.yaml \
   -i api_key="your-api-key" \
   -i user_id="12345" \
   -i include_details=true

@@ -1,25 +1,25 @@
 # Configuration Reference
 
-Complete reference for AEL configuration options.
+Complete reference for Ploston configuration options.
 
 ## Configuration File Location
 
-AEL searches for configuration in this order (first found wins):
+Ploston searches for configuration in this order (first found wins):
 
 1. **CLI flag:** `--config ./path/to/config.yaml`
-2. **Environment variable:** `AEL_CONFIG_PATH=/path/to/config.yaml`
-3. **Current directory:** `./ael-config.yaml`
-4. **User home:** `~/.ael/config.yaml`
+2. **Environment variable:** `PLOSTON_CONFIG_PATH=/path/to/config.yaml`
+3. **Current directory:** `./ploston-config.yaml`
+4. **User home:** `~/.ploston/config.yaml`
 
 ## Configuration Modes
 
 ### Running Mode
 
-When AEL finds a valid configuration file, it starts in **running mode** with full functionality.
+When Ploston finds a valid configuration file, it starts in **running mode** with full functionality.
 
 ### Configuration Mode
 
-When no configuration file exists, AEL starts in **configuration mode** with limited tools for initial setup:
+When no configuration file exists, Ploston starts in **configuration mode** with limited tools for initial setup:
 
 | Tool | Description |
 |------|-------------|
@@ -32,20 +32,20 @@ When no configuration file exists, AEL starts in **configuration mode** with lim
 Force a specific mode:
 
 ```bash
-uv run ael serve --mode configuration  # Force config mode
-uv run ael serve --mode running        # Force running mode (fails if no config)
+ploston serve --mode configuration  # Force config mode
+ploston serve --mode running        # Force running mode (fails if no config)
 ```
 
 ## Complete Configuration Schema
 
 ```yaml
 # ═══════════════════════════════════════════════════════════════
-# AEL CONFIGURATION FILE
+# PLOSTON CONFIGURATION FILE
 # ═══════════════════════════════════════════════════════════════
 
 # Server settings
 server:
-  name: "ael"                    # Server name for MCP
+  name: "ploston"                    # Server name for MCP
   version: "0.1.0"               # Server version
 
 # MCP server connections
@@ -158,7 +158,7 @@ Server identification for MCP protocol.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `name` | string | `"ael"` | Server name |
+| `name` | string | `"ploston"` | Server name |
 | `version` | string | `"0.1.0"` | Server version |
 
 ### `mcp`

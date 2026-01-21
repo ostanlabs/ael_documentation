@@ -1,13 +1,13 @@
 # =============================================================================
-# AEL Documentation - MkDocs Configuration
+# Ploston Documentation - MkDocs Configuration
 # =============================================================================
 # Build: mkdocs build
 # Serve: mkdocs serve
 # =============================================================================
 
-site_name: AEL Documentation
-site_description: Agent Execution Layer - Deterministic workflow execution for AI agents
-site_url: https://ael-docs.netlify.app
+site_name: Ploston Documentation
+site_description: Ploston - Deterministic workflow execution for AI agents
+site_url: https://ploston.com
 repo_url: https://github.com/ostanlabs/agent-execution-layer
 repo_name: ostanlabs/agent-execution-layer
 
@@ -86,7 +86,7 @@ nav:
     - Quickstart: getting-started/quickstart.md
     - First Workflow: getting-started/first-workflow.md
   - Concepts:
-    - How AEL Works: concepts/how-ael-works.md
+    - How Ploston Works: concepts/how-ploston-works.md
     - Execution Model: concepts/execution-model.md
     - Workflows as Tools: concepts/workflows-as-tools.md
     - Security Model: concepts/security-model.md
@@ -101,7 +101,7 @@ nav:
     - Configuration: reference/config-reference.md
     - Workflow Schema: reference/workflow-schema.md
     - Error Codes: reference/error-codes.md
-  - Why AEL?: why-ael.md
+  - Why Ploston?: why-ploston.md
   - Roadmap: roadmap.md
   - Examples:
     - Web Scraping: examples/web-scraping.md

@@ -1,14 +1,14 @@
 # Workflows as Tools
 
-Every AEL workflow automatically becomes an MCP tool. Agents call workflows like any other tool—no special integration required.
+Every Ploston workflow automatically becomes an MCP tool. Agents call workflows like any other tool—no special integration required.
 
-This is AEL's core differentiator: **workflows are first-class MCP citizens**.
+This is Ploston's core differentiator: **workflows are first-class MCP citizens**.
 
 ---
 
 ## The Concept
 
-When AEL starts:
+When Ploston starts:
 1. Workflows are loaded from the configured directory
 2. Each workflow is registered as an MCP tool
 3. Agents discover workflows via standard MCP `tools/list`
@@ -16,7 +16,7 @@ When AEL starts:
 
 ```mermaid
 flowchart TB
-    subgraph Startup["AEL Startup"]
+    subgraph Startup["Ploston Startup"]
         direction TB
 
         subgraph Load["1. Load workflows from ./workflows/"]
@@ -61,10 +61,10 @@ v2.0: fetch → validate → transform → cache → save
 One tool call instead of many. Agents don't need to know the steps.
 
 ```
-# Without AEL: Agent must orchestrate
+# Without Ploston: Agent must orchestrate
 "First call firecrawl_scrape, then transform the result, then call kafka_publish..."
 
-# With AEL: Single tool
+# With Ploston: Single tool
 "Call workflow:scrape-and-publish with the URL"
 ```
 
@@ -88,7 +88,7 @@ steps:
 
 ### 4. Multi-Agent Cooperation
 
-Multiple agents can share the same AEL instance. All agents see the same workflows.
+Multiple agents can share the same Ploston instance. All agents see the same workflows.
 
 ```mermaid
 flowchart BT
@@ -98,7 +98,7 @@ flowchart BT
         C["Agent C<br/>(Custom)"]
     end
 
-    subgraph AEL["AEL Instance"]
+    subgraph Ploston["AEL Instance"]
         subgraph Workflows["Registered Workflows"]
             W1["workflow:scrape-and-publish"]
             W2["workflow:data-enrichment"]
@@ -106,9 +106,9 @@ flowchart BT
         end
     end
 
-    A --> AEL
-    B --> AEL
-    C --> AEL
+    A --> Ploston
+    B --> Ploston
+    C --> Ploston
 ```
 
 ---
@@ -306,7 +306,7 @@ Agents can use the `retryable` flag to decide whether to retry.
 
 ## Next Steps
 
-- **[How AEL Works](./how-ael-works.md)** — The planning vs execution separation
+- **[How Ploston Works](./how-ploston-works.md)** — The planning vs execution separation
 - **[Execution Model](./execution-model.md)** — How workflows execute
 - **[Workflow Schema](../reference/workflow-schema.md)** — Complete YAML reference
 

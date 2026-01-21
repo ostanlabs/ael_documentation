@@ -1,6 +1,6 @@
 # Agent Execution Layer
 
-**LLMs plan. AEL executes.**
+**LLM plans. Ploston executes.**
 
 ---
 
@@ -24,20 +24,20 @@ No enterprise will deploy this in production. No developer wants to debug it.
 
 ## The Solution
 
-AEL moves orchestration out of the LLM and into a deterministic runtime.
+Ploston moves orchestration out of the LLM and into a deterministic runtime.
 
 ```mermaid
 flowchart LR
     subgraph TODAY["TODAY"]
         A["LLM = planner + executor<br/>(fragile, expensive)"]
     end
-    subgraph WITHAEL["WITH AEL"]
+    subgraph WITHPLOSTON["WITH Ploston"]
         B["LLM = planner"]
-        C["AEL = executor<br/>(deterministic, fast)"]
+        C["Ploston = executor<br/>(deterministic, fast)"]
     end
 ```
 
-You define workflows in YAML. AEL exposes them as MCP tools. When your agent needs to scrape a website, transform the data, and publish it—it makes **one call** to your workflow. AEL handles the rest.
+You define workflows in YAML. AEL exposes them as MCP tools. When your agent needs to scrape a website, transform the data, and publish it—it makes **one call** to your workflow. Ploston handles the rest.
 
 Same inputs. Same outputs. Every time.
 
@@ -48,9 +48,9 @@ Same inputs. Same outputs. Every time.
 ```mermaid
 flowchart TB
     Agent["Agent (Claude, GPT, etc.)"]
-    Agent -->|"MCP call: workflow:scrape-and-publish"| AEL
+    Agent -->|"MCP call: workflow:scrape-and-publish"| Ploston
 
-    subgraph AEL["AEL"]
+    subgraph Ploston["Ploston"]
         direction TB
         S1["Step 1: fetch_url"]
         S2["Step 2: extract_data"]
@@ -61,14 +61,14 @@ flowchart TB
         Features["✓ Deterministic execution<br/>✓ Full trace and audit log<br/>✓ Built-in retry and errors"]
     end
 
-    AEL --> Result["Result returned to agent"]
+    Ploston --> Result["Result returned to agent"]
 ```
 
-*The ✓ marks indicate guarantees AEL provides: deterministic execution (same inputs → same outputs), complete audit trails, and automatic retry/error handling.*
+*The ✓ marks indicate guarantees Ploston provides: deterministic execution (same inputs → same outputs), complete audit trails, and automatic retry/error handling.*
 
 The agent doesn't orchestrate. It delegates to infrastructure that executes reliably.
 
-**[Learn how this works →](concepts/how-ael-works.md)**
+**[Learn how this works →](concepts/how-ploston-works.md)**
 
 ---
 
@@ -82,10 +82,10 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 uv sync
 
 # Run a workflow
-uv run ael run examples/workflows/hello-world.yaml
+ploston run examples/workflows/hello-world.yaml
 
 # Start as MCP server (connect to Claude Desktop)
-uv run ael serve
+ploston serve
 ```
 
 **[Get Started →](getting-started/installation.md)**
@@ -114,13 +114,13 @@ uv run ael serve
 
 ---
 
-## Why AEL?
+## Why Ploston?
 
-AEL is not an API gateway. It's not a workflow engine. It's not an agent framework.
+Ploston is not an API gateway. It's not a workflow engine. It's not an agent framework.
 
 It's the **execution layer** that makes agent systems production-ready.
 
-**[Learn why this matters →](why-ael.md)**
+**[Learn why this matters →](why-ploston.md)**
 
 ---
 
@@ -130,9 +130,9 @@ It's the **execution layer** that makes agent systems production-ready.
 flowchart TB
     Agent["AI Agent / Client"]
 
-    Agent -->|"MCP Protocol / REST API"| AEL
+    Agent -->|"MCP Protocol / REST API"| Ploston
 
-    subgraph AEL["AEL"]
+    subgraph Ploston["Ploston"]
         direction TB
         subgraph Components[" "]
             direction LR
@@ -144,7 +144,7 @@ flowchart TB
         Components --> Sandbox
     end
 
-    AEL -->|"MCP Protocol"| External
+    Ploston -->|"MCP Protocol"| External
 
     subgraph External["External MCP Servers"]
         Tools["filesystem, fetch, databases, custom tools, etc."]
@@ -169,14 +169,14 @@ flowchart TB
 | Guide | Description |
 |-------|-------------|
 | [Installation](getting-started/installation.md) | Install from source or Docker |
-| [Quickstart](getting-started/quickstart.md) | 5-minute introduction to AEL |
+| [Quickstart](getting-started/quickstart.md) | 5-minute introduction to Ploston |
 | [First Workflow](getting-started/first-workflow.md) | Step-by-step workflow tutorial |
 
 ### Concepts
 
 | Concept | Description |
 |---------|-------------|
-| [How AEL Works](concepts/how-ael-works.md) | Core mental model: planning vs execution |
+| [How Ploston Works](concepts/how-ploston-works.md) | Core mental model: planning vs execution |
 | [Execution Model](concepts/execution-model.md) | Step execution, data flow, error handling |
 | [Security Model](concepts/security-model.md) | 7-layer sandbox security |
 | [Workflows as Tools](concepts/workflows-as-tools.md) | Virtual tool publishing via MCP |
@@ -226,4 +226,4 @@ flowchart TB
 
 ## License
 
-AEL is released under the [Apache 2.0 License](https://github.com/ostanlabs/agent-execution-layer/blob/main/LICENSE).
+Ploston is released under the [Apache 2.0 License](https://github.com/ostanlabs/agent-execution-layer/blob/main/LICENSE).

@@ -1,6 +1,6 @@
-# How AEL Works
+# How Ploston Works
 
-This page explains the core insight behind AEL: **separating planning from execution**.
+This page explains the core insight behind Ploston: **separating planning from execution**.
 
 If you understand this, everything else makes sense.
 
@@ -53,31 +53,31 @@ Same input, different output. Good luck testing that.
 
 ## The Solution: Deterministic Execution
 
-AEL inverts the model. The agent makes **one decision** (which workflow to call), and AEL handles the **execution**.
+AEL inverts the model. The agent makes **one decision** (which workflow to call), and Ploston handles the **execution**.
 
 ```mermaid
 sequenceDiagram
     participant User
     participant Agent as Agent (LLM)
-    participant AEL
+    participant Ploston
 
     User->>Agent: "Get top stories from HN and save them to a file"
     Note over Agent: "This matches my scrape-and-save workflow"
-    Agent->>AEL: workflow:scrape-and-save(url="...", path="stories.txt")
+    Agent->>Ploston: workflow:scrape-and-save(url="...", path="stories.txt")
 
-    Note over AEL: Step 1: firecrawl_scrape ✓ 1.2s
-    Note over AEL: Step 2: extract_titles ✓ 0.1s
-    Note over AEL: Step 3: write_file ✓ 0.05s
-    Note over AEL: Total: 1.35s, deterministic
+    Note over Ploston: Step 1: firecrawl_scrape ✓ 1.2s
+    Note over Ploston: Step 2: extract_titles ✓ 0.1s
+    Note over Ploston: Step 3: write_file ✓ 0.05s
+    Note over Ploston: Total: 1.35s, deterministic
 
-    AEL->>Agent: {saved: "stories.txt", count: 30}
+    Ploston->>Agent: {saved: "stories.txt", count: 30}
 
-    Note over User,AEL: 1 LLM round-trip, ~500 tokens, deterministic
+    Note over User,Ploston: 1 LLM round-trip, ~500 tokens, deterministic
 ```
 
 ### What Changes
 
-| Dimension | LLM Orchestrates | AEL Orchestrates |
+| Dimension | LLM Orchestrates | Ploston Orchestrates |
 |-----------|------------------|------------------|
 | **LLM calls** | N (one per step) | 1 (workflow invocation) |
 | **Token cost** | High, variable | Low, predictable |
@@ -101,19 +101,19 @@ flowchart LR
         A4["• Probabilistic"]
     end
 
-    subgraph AEL["AEL"]
+    subgraph Ploston["Ploston"]
         B1["• Executes workflows"]
         B2["• Handles HOW to do it"]
         B3["• Orchestrates tool calls"]
         B4["• Deterministic"]
     end
 
-    Agent -->|"MCP call"| AEL
+    Agent -->|"MCP call"| Ploston
 ```
 
 The agent remains the **decision-maker**. It interprets what the user wants and picks the appropriate workflow.
 
-AEL is the **execution substrate**. It runs the workflow deterministically, handles errors, logs everything, and returns a clean result.
+Ploston is the **execution substrate**. It runs the workflow deterministically, handles errors, logs everything, and returns a clean result.
 
 This is analogous to how infrastructure has evolved:
 
@@ -122,13 +122,13 @@ This is analogous to how infrastructure has evolved:
 | Infrastructure | Manual provisioning | Terraform |
 | Operations | Imperative scripts | Kubernetes |
 | Workflows | Ad-hoc code | Temporal |
-| **Agent execution** | **LLM orchestration** | **AEL** |
+| **Agent execution** | **LLM orchestration** | **Ploston** |
 
 ---
 
 ## Workflows as Virtual Tools
 
-When you define a workflow in AEL, it becomes an MCP tool that agents can call.
+When you define a workflow in Ploston, it becomes an MCP tool that agents can call.
 
 ```yaml
 # workflows/scrape-and-save.yaml
@@ -170,7 +170,7 @@ outputs:
       value: "{{ steps.extract.output.titles | length }}"
 ```
 
-When AEL starts, this workflow appears as a tool:
+When Ploston starts, this workflow appears as a tool:
 
 ```
 Tools available:
@@ -180,7 +180,7 @@ Tools available:
   - ...
 ```
 
-The agent sees `workflow:scrape-and-save` as just another tool. It doesn't know or care that it's a multi-step workflow. It calls it like any other tool, and AEL handles the execution.
+The agent sees `workflow:scrape-and-save` as just another tool. It doesn't know or care that it's a multi-step workflow. It calls it like any other tool, and Ploston handles the execution.
 
 ---
 
@@ -195,7 +195,7 @@ You know exactly what a workflow costs because it always executes the same steps
 Workflows are code. You can unit test them:
 
 ```bash
-ael test workflows/scrape-and-save.yaml --input url=https://example.com --input path=test.txt
+ploston test workflows/scrape-and-save.yaml --input url=https://example.com --input path=test.txt
 ```
 
 Same inputs → same outputs → passing tests.
@@ -223,13 +223,13 @@ When something fails, you know exactly which step, with full input/output visibi
 
 ### Governance (Enterprise)
 
-Because execution flows through AEL, you can enforce:
+Because execution flows through Ploston, you can enforce:
 - Who can run which workflows
 - What inputs are allowed
 - What outputs are permitted
 - Audit logs for compliance
 
-The agent doesn't bypass governance—it calls AEL, and AEL enforces policy.
+The agent doesn't bypass governance—it calls Ploston, and Ploston enforces policy.
 
 ---
 
@@ -237,7 +237,7 @@ The agent doesn't bypass governance—it calls AEL, and AEL enforces policy.
 
 - **[Execution Model](./execution-model.md)** — Detailed execution semantics
 - **[Workflows as Tools](./workflows-as-tools.md)** — MCP integration
-- **[Why AEL?](../why-ael.md)** — Comparison with alternatives
+- **[Why Ploston?](../why-ploston.md)** — Comparison with alternatives
 
 **← [Back to Home](../index.md)**
 

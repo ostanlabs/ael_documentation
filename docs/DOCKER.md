@@ -1,6 +1,6 @@
-# AEL Docker Deployment Guide
+# Ploston Docker Deployment Guide
 
-This guide covers Docker deployment for AEL (Agent Execution Layer) and native-tools.
+This guide covers Docker deployment for Ploston (Agent Execution Layer) and native-tools.
 
 ## Quick Start
 
@@ -12,7 +12,7 @@ docker compose up -d
 docker compose ps
 
 # View logs
-docker compose logs -f ael
+docker compose logs -f ploston
 
 # Stop services
 docker compose down
@@ -25,7 +25,7 @@ docker compose down
 │           Docker Network                │
 │                                         │
 │  ┌─────────────┐    ┌──────────────┐   │
-│  │     ael     │───▶│ native-tools │   │
+│  │   ploston   │───▶│ native-tools │   │
 │  │   :8080     │    │    :8081     │   │
 │  └─────────────┘    └──────────────┘   │
 │         │                   │          │
@@ -39,7 +39,7 @@ docker compose down
 
 ## Images
 
-### AEL Image
+### Ploston Image
 
 **Purpose**: Main MCP server with workflow engine and tool orchestration
 
@@ -52,12 +52,12 @@ docker compose down
 
 **Build:**
 ```bash
-docker build -t ael:latest .
+docker build -t ploston:latest .
 ```
 
 **Run standalone:**
 ```bash
-docker run -p 8080:8080 -p 9090:9090 ael:latest
+docker run -p 8080:8080 -p 9090:9090 ploston:latest
 ```
 
 ### Native Tools Image
@@ -80,17 +80,17 @@ docker build -t native-tools:latest -f docker/native-tools/Dockerfile .
 
 ### Environment Variables
 
-#### AEL Service
+#### Ploston Service
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `AEL_HOST` | Bind host | `0.0.0.0` |
-| `AEL_PORT` | HTTP port | `8080` |
-| `AEL_TRANSPORT` | Transport type | `http` |
-| `AEL_CONFIG` | Config file path | `/app/config/ael-config.yaml` |
-| `AEL_TELEMETRY_ENABLED` | Enable telemetry | `true` |
-| `AEL_METRICS_ENABLED` | Enable Prometheus metrics | `true` |
-| `AEL_TRACES_ENABLED` | Enable distributed tracing | `true` |
+| `PLOSTON_HOST` | Bind host | `0.0.0.0` |
+| `PLOSTON_PORT` | HTTP port | `8080` |
+| `PLOSTON_TRANSPORT` | Transport type | `http` |
+| `PLOSTON_CONFIG` | Config file path | `/app/config/ploston-config.yaml` |
+| `PLOSTON_TELEMETRY_ENABLED` | Enable telemetry | `true` |
+| `PLOSTON_METRICS_ENABLED` | Enable Prometheus metrics | `true` |
+| `PLOSTON_TRACES_ENABLED` | Enable distributed tracing | `true` |
 | `LOG_LEVEL` | Log level | `INFO` |
 
 #### Native Tools Service
@@ -130,10 +130,10 @@ docker compose -f docker-compose.dev.yaml up -d
 docker compose -f docker-compose.dev.yaml logs -f
 
 # Get a shell in the container
-docker compose -f docker-compose.dev.yaml exec ael-dev bash
+docker compose -f docker-compose.dev.yaml exec ploston-dev bash
 
 # Run tests in container
-docker compose -f docker-compose.dev.yaml exec ael-dev pytest
+docker compose -f docker-compose.dev.yaml exec ploston-dev pytest
 
 # Stop
 docker compose -f docker-compose.dev.yaml down
@@ -151,7 +151,7 @@ docker compose -f docker-compose.dev.yaml down
 Both services expose health endpoints:
 
 ```bash
-# AEL health
+# Ploston health
 curl http://localhost:8080/health
 
 # Native tools health
@@ -194,7 +194,7 @@ docker compose up -d
 
 ```bash
 # Check logs
-docker compose logs ael
+docker compose logs ploston
 
 # Check health status
 docker compose ps
@@ -205,7 +205,7 @@ docker compose build --no-cache
 
 ### Connection refused to native-tools
 
-Ensure native-tools is healthy before AEL starts:
+Ensure native-tools is healthy before Ploston starts:
 
 ```bash
 # Check native-tools health
@@ -227,7 +227,7 @@ Default resource limits in production:
 
 | Service | CPU Limit | Memory Limit |
 |---------|-----------|--------------|
-| ael | 2.0 | 2GB |
+| ploston | 2.0 | 2GB |
 | native-tools | 1.0 | 1GB |
 
 Adjust in `docker-compose.yml` under `deploy.resources`.
@@ -238,5 +238,5 @@ Images support both `amd64` and `arm64` architectures:
 
 ```bash
 # Build for multiple platforms
-docker buildx build --platform linux/amd64,linux/arm64 -t ael:latest .
+docker buildx build --platform linux/amd64,linux/arm64 -t ploston:latest .
 ```

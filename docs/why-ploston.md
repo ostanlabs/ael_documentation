@@ -1,8 +1,8 @@
-# Why AEL?
+# Why Ploston?
 
-AEL exists because **agents shouldn't orchestrate their own execution**.
+Ploston exists because **agents shouldn't orchestrate their own execution**.
 
-This page explains why—and how AEL compares to alternatives.
+This page explains why—and how Ploston compares to alternatives.
 
 ---
 
@@ -25,7 +25,7 @@ Step 7: Agent receives result #2            (~500 tokens)
 ... and so on
 ```
 
-A 5-step task easily costs 2,000-5,000 tokens. With AEL:
+A 5-step task easily costs 2,000-5,000 tokens. With Ploston:
 
 ```
 Step 1: Agent receives user request         (~100 tokens)
@@ -47,7 +47,7 @@ LLMs are probabilistic. Given the same input, they might:
 
 This is fine for creative tasks. It's unacceptable for automation.
 
-AEL workflows are deterministic. Same inputs → same execution path → same outputs. You can write tests. You can make guarantees.
+Ploston workflows are deterministic. Same inputs → same execution path → same outputs. You can write tests. You can make guarantees.
 
 ### The Debugging Problem
 
@@ -57,7 +57,7 @@ When an LLM-orchestrated task fails, you get:
 - No clear indication of which step failed
 - No intermediate values
 
-When an AEL workflow fails, you get:
+When a Ploston workflow fails, you get:
 - Exact step that failed
 - Full trace of all previous steps
 - Input/output values at each step
@@ -65,7 +65,7 @@ When an AEL workflow fails, you get:
 
 ### Summary
 
-| Concern | Agent Orchestrates | AEL Orchestrates |
+| Concern | Agent Orchestrates | Ploston Orchestrates |
 |---------|-------------------|------------------|
 | Token cost | High, unpredictable | Low, predictable |
 | Determinism | No | Yes |
@@ -78,9 +78,9 @@ When an AEL workflow fails, you get:
 
 ## vs. Workflow Engines (Temporal, Airflow, Prefect)
 
-*"Isn't AEL just another workflow engine?"*
+*"Isn't Ploston just another workflow engine?"*
 
-No. AEL is **agent-native**. Traditional workflow engines aren't.
+No. Ploston is **agent-native**. Traditional workflow engines aren't.
 
 ### The Protocol Gap
 
@@ -91,7 +91,7 @@ Temporal, Airflow, and Prefect don't speak MCP. To use them from an agent, you'd
 3. Map workflow outputs back to MCP responses
 4. Build your own error handling layer
 
-AEL speaks MCP natively. Workflows automatically appear as MCP tools. No glue code.
+Ploston speaks MCP natively. Workflows automatically appear as MCP tools. No glue code.
 
 ### The Mental Model Gap
 
@@ -100,13 +100,13 @@ Traditional workflow engines are designed for:
 - Long-running data pipelines
 - Human-triggered processes
 
-AEL is designed for:
+Ploston is designed for:
 - Real-time agent requests
 - Sub-second latency requirements
 - Dynamic tool composition
 - Multi-agent coordination
 
-The execution model is different. AEL workflows are invoked like function calls, not submitted like jobs.
+The execution model is different. Ploston workflows are invoked like function calls, not submitted like jobs.
 
 ### The Integration Gap
 
@@ -116,7 +116,7 @@ Traditional workflow engines require:
 - Queue management
 - State persistence backends
 
-AEL runs as a single process. Start it, connect your agent, done.
+Ploston runs as a single process. Start it, connect your agent, done.
 
 ### When to Use What
 
@@ -124,9 +124,9 @@ AEL runs as a single process. Start it, connect your agent, done.
 |----------|-------------|
 | Nightly data pipeline | Airflow/Prefect |
 | Long-running batch job | Temporal |
-| Real-time agent tool calls | **AEL** |
-| Sub-second execution | **AEL** |
-| MCP-native integration | **AEL** |
+| Real-time agent tool calls | **Ploston** |
+| Sub-second execution | **Ploston** |
+| MCP-native integration | **Ploston** |
 
 ---
 
@@ -134,7 +134,7 @@ AEL runs as a single process. Start it, connect your agent, done.
 
 *"Can't I just put a proxy in front of my MCP servers?"*
 
-A proxy routes requests. AEL **executes workflows**.
+A proxy routes requests. Ploston **executes workflows**.
 
 ### What a Gateway Does
 
@@ -153,14 +153,14 @@ A gateway:
 
 It doesn't understand what you're trying to accomplish. It just passes messages.
 
-### What AEL Does
+### What Ploston Does
 
 ```mermaid
 flowchart TB
-    Agent --> AEL
-    AEL --> Servers["Multiple MCP Servers"]
+    Agent --> Ploston
+    Ploston --> Servers["Multiple MCP Servers"]
 
-    subgraph AEL["AEL (workflow execution)"]
+    subgraph Ploston["AEL (workflow execution)"]
         S1["Step 1: Call server A"]
         S2["Step 2: Transform result"]
         S3["Step 3: Call server B"]
@@ -168,10 +168,10 @@ flowchart TB
         S1 --> S2 --> S3 --> S4
     end
 
-    AEL --> Result["Return final result"]
+    Ploston --> Result["Return final result"]
 ```
 
-AEL:
+Ploston:
 - Executes multi-step workflows
 - Handles retries and errors
 - Transforms data between steps
@@ -193,20 +193,20 @@ flowchart TB
         G1 --> G2 --> G3 --> G4 --> G5
     end
 
-    subgraph AELBox["With AEL: 1 call, 100 tokens, deterministic"]
+    subgraph PlostonBox["With Ploston: 1 call, 100 tokens, deterministic"]
         A1["workflow:scrape-transform-publish"]
     end
 ```
 
-Gateways don't compose tools. AEL does.
+Gateways don't compose tools. Ploston does.
 
 ---
 
 ## vs. Agent Frameworks (LangChain, CrewAI, AutoGen)
 
-*"How is AEL different from agent frameworks?"*
+*"How is Ploston different from agent frameworks?"*
 
-Agent frameworks help you **build agents**. AEL is **infrastructure agents call**.
+Agent frameworks help you **build agents**. Ploston is **infrastructure agents call**.
 
 ### The Layer Difference
 
@@ -219,9 +219,9 @@ flowchart TB
         F4["Chain composition"]
     end
 
-    Framework -->|"calls tools"| AEL
+    Framework -->|"calls tools"| Ploston
 
-    subgraph AEL["AEL (Execution Layer)"]
+    subgraph Ploston["AEL (Execution Layer)"]
         A1["Workflow execution"]
         A2["Tool orchestration"]
         A3["Deterministic guarantees"]
@@ -229,28 +229,28 @@ flowchart TB
     end
 ```
 
-AEL doesn't replace your agent framework. It's what your framework's agents call when they need reliable execution.
+Ploston doesn't replace your agent framework. It's what your framework's agents call when they need reliable execution.
 
 ### Complementary, Not Competing
 
 You can use:
-- LangChain for agent orchestration + AEL for tool execution
-- CrewAI for multi-agent coordination + AEL for deterministic workflows
-- AutoGen for conversations + AEL for reliable actions
+- LangChain for agent orchestration + Ploston for tool execution
+- CrewAI for multi-agent coordination + Ploston for deterministic workflows
+- AutoGen for conversations + Ploston for reliable actions
 
-AEL makes your agents more reliable, regardless of which framework you use.
+Ploston makes your agents more reliable, regardless of which framework you use.
 
 ---
 
 ## The Category
 
-AEL is not:
+Ploston is not:
 - ❌ An API gateway (we don't just route)
 - ❌ A workflow engine (we're agent-native)
 - ❌ An agent framework (we don't do planning)
 - ❌ An MCP proxy (we add execution logic)
 
-AEL is:
+Ploston is:
 - ✅ A deterministic execution layer for AI agents
 - ✅ The infrastructure that makes agents production-ready
 - ✅ The "Kubernetes moment" for agent systems

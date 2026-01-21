@@ -1,10 +1,10 @@
 # Tool Integration Guide
 
-This guide explains how to integrate and use tools in AEL workflows.
+This guide explains how to integrate and use tools in Ploston workflows.
 
 ## Tool Types
 
-AEL supports three types of tools:
+Ploston supports three types of tools:
 
 | Type | Description | Example |
 |------|-------------|---------|
@@ -41,7 +41,7 @@ MCP (Model Context Protocol) servers provide tools via a standardized protocol.
 
 ### Configuring MCP Servers
 
-Add MCP servers to your `ael-config.yaml`:
+Add MCP servers to your `ploston-config.yaml`:
 
 ```yaml
 tools:
@@ -79,7 +79,7 @@ Popular MCP servers from the community:
 
 ### Native Tools Server
 
-AEL includes a native tools MCP server with these tools:
+Ploston includes a native tools MCP server with these tools:
 
 | Category | Tools |
 |----------|-------|
@@ -142,14 +142,14 @@ Use the CLI to see available tools:
 
 ```bash
 # List all tools
-uv run ael tools list
+ploston tools list
 
 # Filter by source
-uv run ael tools list --source mcp
-uv run ael tools list --source system
+ploston tools list --source mcp
+ploston tools list --source system
 
 # Show tool details
-uv run ael tools show fs_read
+ploston tools show fs_read
 ```
 
 Example output:
@@ -172,7 +172,7 @@ Total: 4 tools (4 available)
 Tools define their input parameters via JSON Schema:
 
 ```bash
-uv run ael tools show fs_read
+ploston tools show fs_read
 ```
 
 ```yaml
@@ -266,7 +266,7 @@ if __name__ == "__main__":
     mcp.run()
 ```
 
-Configure in `ael-config.yaml`:
+Configure in `ploston-config.yaml`:
 
 ```yaml
 tools:

@@ -1,12 +1,12 @@
 # Execution Model
 
-This page explains how AEL executes workflows—step by step, deterministically, with full traceability.
+This page explains how Ploston executes workflows—step by step, deterministically, with full traceability.
 
 ---
 
 ## Core Principle: Sequential Execution
 
-AEL executes workflow steps **sequentially**. Each step must complete before the next begins.
+Ploston executes workflow steps **sequentially**. Each step must complete before the next begins.
 
 ```mermaid
 flowchart TB
@@ -29,7 +29,7 @@ This is intentional. Sequential execution is:
 
 ## Execution Flow
 
-When you call a workflow, AEL follows this sequence:
+When you call a workflow, Ploston follows this sequence:
 
 ```mermaid
 flowchart TB
@@ -126,7 +126,7 @@ step_output.step_id     # str - step identifier
 
 ## Error Handling
 
-AEL provides three error handling modes, configured per-step or as workflow defaults.
+Ploston provides three error handling modes, configured per-step or as workflow defaults.
 
 ### `on_error: fail` (Default)
 
@@ -226,7 +226,7 @@ Step-level config     (highest priority)
       ↓
 Workflow defaults
       ↓
-System config (ael-config.yaml)
+System config (ploston-config.yaml)
       ↓
 Hardcoded defaults    (lowest priority)
 ```
@@ -314,4 +314,4 @@ The following features are planned for future releases:
 - **[Workflows as Tools](./workflows-as-tools.md)** — How workflows become MCP tools
 - **[Workflow Schema](../reference/workflow-schema.md)** — Complete YAML reference
 
-**← [How AEL Works](./how-ael-works.md)** | **[Security Model →](./security-model.md)**
+**← [How Ploston Works](./how-ploston-works.md)** | **[Security Model →](./security-model.md)**

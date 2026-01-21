@@ -1,8 +1,8 @@
-# AEL Documentation
+# Ploston Documentation
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/b57f9264-9998-489b-b8bf-61a2f41171ac/deploy-status)](https://app.netlify.com/projects/ostanlabs/deploys)
 
-Public documentation for the [Agent Execution Layer (AEL)](https://github.com/ostanlabs/agent-execution-layer).
+Public documentation for the [Ploston](https://github.com/ostanlabs/agent-execution-layer).
 
 **Live Site:** [https://ostanlabs.netlify.app](https://ostanlabs.netlify.app)
 
@@ -74,14 +74,14 @@ Output is generated in the `site/` directory.
 ```
 docs/
 ├── index.md                    # Homepage
-├── why-ael.md                  # Differentiation page
+├── why-ploston.md                  # Differentiation page
 ├── roadmap.md                  # Roadmap and phases
 ├── getting-started/
 │   ├── installation.md
 │   ├── quickstart.md
 │   └── first-workflow.md
 ├── concepts/
-│   ├── how-ael-works.md        # Mental model
+│   ├── how-ploston-works.md        # Mental model
 │   ├── execution-model.md      # Step execution details
 │   ├── workflows-as-tools.md   # MCP integration
 │   └── security-model.md       # 7-layer security

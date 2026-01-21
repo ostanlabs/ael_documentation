@@ -1,6 +1,6 @@
 # Code Steps Guide
 
-Complete guide to using Python code in AEL workflows.
+Complete guide to using Python code in Ploston workflows.
 
 ## Overview
 
