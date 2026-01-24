@@ -8,8 +8,8 @@
 site_name: Ploston Documentation
 site_description: Ploston - Deterministic workflow execution for AI agents
 site_url: https://ploston.com
-repo_url: https://github.com/ostanlabs/agent-execution-layer
-repo_name: ostanlabs/agent-execution-layer
+repo_url: https://github.com/ostanlabs/ploston
+repo_name: ostanlabs/ploston
 
 # -----------------------------------------------------------------------------
 # Theme Configuration
@@ -114,5 +114,5 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/ostanlabs/agent-execution-layer
+      link: https://github.com/ostanlabs/ploston
   generator: false

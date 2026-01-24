@@ -5,83 +5,85 @@ This guide covers installing Ploston on your system.
 ## Requirements
 
 - **Python**: 3.12 or higher
-- **Git**: For cloning the repository
 - **OS**: macOS, Linux, or Windows
 
 ## Installation Methods
 
-### From Source (Recommended)
+### From PyPI (Recommended)
 
-Clone the repository and install dependencies:
+Install the Ploston CLI from PyPI:
+
+```bash
+pip install ploston-cli
+```
+
+Verify the installation:
+
+```bash
+ploston version
+```
+
+### Using Docker
+
+Run Ploston using the official Docker image:
+
+```bash
+# Pull and run the latest image
+docker run -p 8082:8082 ostanlabs/ploston:latest
+
+# Or use a specific version
+docker run -p 8082:8082 ostanlabs/ploston:dev
+```
+
+For development with Docker Compose, create a `docker-compose.yml`:
+
+```yaml
+services:
+  ploston:
+    image: ostanlabs/ploston:latest
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./workflows:/app/workflows
+      - ./ploston-config.yaml:/app/ploston-config.yaml
+    environment:
+      - PLOSTON_LOG_LEVEL=INFO
+```
+
+Then run:
+
+```bash
+docker compose up -d
+docker compose logs -f ploston
+```
+
+### From Source (Development)
+
+For contributing or development:
 
 ```bash
 # Clone the repository
-git clone https://github.com/ostanlabs/agent-execution-layer.git
-cd agent-execution-layer
+git clone https://github.com/ostanlabs/ploston.git
+cd ploston
 
 # Install uv (fast Python package manager)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Install dependencies
 uv sync
-```
 
-### Using Docker
-
-Build and run Ploston using Docker Compose:
-
-```bash
-# Clone the repository
-git clone https://github.com/ostanlabs/agent-execution-layer.git
-cd agent-execution-layer
-
-# Build and start services
-docker compose up -d
-
-# View logs
-docker compose logs -f ploston
-```
-
-Or build the image manually:
-
-```bash
-docker build -t ploston:latest .
-docker run -p 8080:8080 ploston:latest
+# Run the CLI
+uv run ploston --help
 ```
 
 ## Running the CLI
 
-After installation from source, you have several ways to run the Ploston CLI:
-
-### Option 1: Using uv run (Recommended)
+After installing from PyPI, the `ploston` command is available globally:
 
 ```bash
-# No activation needed - uv handles the virtual environment
 ploston --help
 ploston version
 ploston serve
-```
-
-### Option 2: Activate Virtual Environment
-
-```bash
-# Activate the virtual environment first
-source .venv/bin/activate  # Linux/macOS
-# or
-.venv\Scripts\activate     # Windows
-
-# Then run ploston directly
-ploston --help
-ploston version
-ploston serve
-```
-
-### Option 3: Direct Path
-
-```bash
-# Run directly from the virtual environment
-.venv/bin/ploston --help       # Linux/macOS
-.venv\Scripts\ploston.exe      # Windows
 ```
 
 ## Configuration Modes
@@ -180,22 +182,27 @@ pyenv install 3.12
 pyenv local 3.12
 ```
 
-### uv Not Found
+### Command Not Found After pip install
+
+Make sure your Python scripts directory is in your PATH:
 
 ```bash
-# Reinstall uv
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Add to PATH (if needed)
+# Linux/macOS
 export PATH="$HOME/.local/bin:$PATH"
+
+# Or use pipx for isolated installation
+pipx install ploston-cli
 ```
 
-### Command Not Found After uv sync
+### Docker Image Not Found
 
-Make sure you're using one of the CLI invocation methods above. The `ploston` command is only available:
-- When using `ploston`
-- After activating the virtual environment
-- Via direct path `.venv/bin/ploston`
+```bash
+# Pull the latest image
+docker pull ostanlabs/ploston:latest
+
+# Or use the dev tag
+docker pull ostanlabs/ploston:dev
+```
 
 ## Next Steps
 

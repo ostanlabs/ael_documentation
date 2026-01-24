@@ -345,9 +345,9 @@ If you are still stuck:
      level: DEBUG
    ```
 
-2. **Search issues:** [GitHub Issues](https://github.com/ostanlabs/agent-execution-layer/issues)
+2. **Search issues:** [GitHub Issues](https://github.com/ostanlabs/ploston/issues)
 
-3. **Ask for help:** [GitHub Discussions](https://github.com/ostanlabs/agent-execution-layer/discussions)
+3. **Ask for help:** [GitHub Discussions](https://github.com/ostanlabs/ploston/discussions)
 
 4. **Report a bug:** Include:
    - Ploston version (`ploston version`)

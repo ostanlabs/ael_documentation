@@ -160,7 +160,7 @@ flowchart TB
     Agent --> Ploston
     Ploston --> Servers["Multiple MCP Servers"]
 
-    subgraph Ploston["AEL (workflow execution)"]
+    subgraph Ploston["Ploston (workflow execution)"]
         S1["Step 1: Call server A"]
         S2["Step 2: Transform result"]
         S3["Step 3: Call server B"]
@@ -221,7 +221,7 @@ flowchart TB
 
     Framework -->|"calls tools"| Ploston
 
-    subgraph Ploston["AEL (Execution Layer)"]
+    subgraph Ploston["Ploston (Execution Layer)"]
         A1["Workflow execution"]
         A2["Tool orchestration"]
         A3["Deterministic guarantees"]

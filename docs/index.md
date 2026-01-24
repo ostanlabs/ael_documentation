@@ -1,4 +1,4 @@
-# Agent Execution Layer
+# Ploston
 
 **LLM plans. Ploston executes.**
 
@@ -37,7 +37,7 @@ flowchart LR
     end
 ```
 
-You define workflows in YAML. AEL exposes them as MCP tools. When your agent needs to scrape a website, transform the data, and publish it—it makes **one call** to your workflow. Ploston handles the rest.
+You define workflows in YAML. Ploston exposes them as MCP tools. When your agent needs to scrape a website, transform the data, and publish it—it makes **one call** to your workflow. Ploston handles the rest.
 
 Same inputs. Same outputs. Every time.
 
@@ -75,14 +75,11 @@ The agent doesn't orchestrate. It delegates to infrastructure that executes reli
 ## Quick Start
 
 ```bash
-# Clone and install
-git clone https://github.com/ostanlabs/agent-execution-layer.git
-cd agent-execution-layer
-curl -LsSf https://astral.sh/uv/install.sh | sh
-uv sync
+# Install the CLI
+pip install ploston-cli
 
 # Run a workflow
-ploston run examples/workflows/hello-world.yaml
+ploston run workflows/hello-world.yaml
 
 # Start as MCP server (connect to Claude Desktop)
 ploston serve
@@ -219,11 +216,11 @@ flowchart TB
 
 ## Getting Help
 
-- **GitHub Issues**: [Report bugs or request features](https://github.com/ostanlabs/agent-execution-layer/issues)
-- **Discussions**: [Ask questions and share ideas](https://github.com/ostanlabs/agent-execution-layer/discussions)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/ostanlabs/ploston/issues)
+- **Discussions**: [Ask questions and share ideas](https://github.com/ostanlabs/ploston/discussions)
 
 ---
 
 ## License
 
-Ploston is released under the [Apache 2.0 License](https://github.com/ostanlabs/agent-execution-layer/blob/main/LICENSE).
+Ploston is released under the [Apache 2.0 License](https://github.com/ostanlabs/ploston/blob/main/LICENSE).

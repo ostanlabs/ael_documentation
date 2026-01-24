@@ -4,16 +4,21 @@ Get Ploston running in 5 minutes.
 
 ## Prerequisites
 
-- Ploston installed from source ([Installation Guide](installation.md))
+- Python 3.12 or higher
 - Terminal access
 
-## Step 1: Navigate to Project
+## Step 1: Install Ploston CLI
 
 ```bash
-cd agent-execution-layer
+pip install ploston-cli
 ```
 
-## Step 2: Create Configuration
+## Step 2: Create a Project Directory
+
+```bash
+mkdir my-ploston-project
+cd my-ploston-project
+```
 
 Create `ploston-config.yaml`:
 
@@ -25,9 +30,13 @@ logging:
   level: INFO
 ```
 
-## Step 3: Create Your First Workflow
+## Step 4: Create Your First Workflow
 
-Create `workflows/hello.yaml`:
+Create the workflows directory and `workflows/hello.yaml`:
+
+```bash
+mkdir workflows
+```
 
 ```yaml
 name: hello
@@ -48,7 +57,7 @@ steps:
 output: "{{ steps.greet.output }}"
 ```
 
-## Step 4: Validate the Workflow
+## Step 5: Validate the Workflow
 
 ```bash
 ploston validate workflows/hello.yaml
@@ -59,7 +68,7 @@ Expected output:
 ✓ Workflow 'hello' is valid
 ```
 
-## Step 5: Run the Workflow
+## Step 6: Run the Workflow
 
 ```bash
 ploston run workflows/hello.yaml
@@ -81,7 +90,7 @@ Expected output:
 Hello, Alice!
 ```
 
-## Step 6: Start as MCP Server (Optional)
+## Step 7: Start as MCP Server (Optional)
 
 Start Ploston as an MCP server for AI agent integration:
 

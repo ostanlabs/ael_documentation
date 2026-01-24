@@ -53,7 +53,7 @@ Same input, different output. Good luck testing that.
 
 ## The Solution: Deterministic Execution
 
-AEL inverts the model. The agent makes **one decision** (which workflow to call), and Ploston handles the **execution**.
+Ploston inverts the model. The agent makes **one decision** (which workflow to call), and Ploston handles the **execution**.
 
 ```mermaid
 sequenceDiagram

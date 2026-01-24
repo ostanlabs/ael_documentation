@@ -4,18 +4,10 @@ Complete reference for all Ploston command-line interface commands.
 
 ## Running the CLI
 
-After installing Ploston from source, use one of these methods:
+After installing Ploston CLI (`pip install ploston-cli`), the `ploston` command is available:
 
 ```bash
-# Recommended: Use uv run
 ploston <command>
-
-# Or activate venv first
-source .venv/bin/activate
-ploston <command>
-
-# Or use direct path
-.venv/bin/ploston <command>
 ```
 
 ## Global Options

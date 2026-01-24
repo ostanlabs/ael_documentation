@@ -98,7 +98,7 @@ flowchart BT
         C["Agent C<br/>(Custom)"]
     end
 
-    subgraph Ploston["AEL Instance"]
+    subgraph Ploston["Ploston Instance"]
         subgraph Workflows["Registered Workflows"]
             W1["workflow:scrape-and-publish"]
             W2["workflow:data-enrichment"]

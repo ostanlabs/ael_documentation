@@ -2,7 +2,7 @@
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/b57f9264-9998-489b-b8bf-61a2f41171ac/deploy-status)](https://app.netlify.com/projects/ostanlabs/deploys)
 
-Public documentation for the [Ploston](https://github.com/ostanlabs/agent-execution-layer).
+Public documentation for [Ploston](https://github.com/ostanlabs/ploston) - Deterministic workflow execution for AI agents.
 
 **Live Site:** [https://ostanlabs.netlify.app](https://ostanlabs.netlify.app)
 
@@ -13,7 +13,9 @@ Public documentation for the [Ploston](https://github.com/ostanlabs/agent-execut
 | Resource | URL |
 |----------|-----|
 | **Production Docs** | [ostanlabs.netlify.app](https://ostanlabs.netlify.app) |
-| **Main Repo** | [github.com/ostanlabs/agent-execution-layer](https://github.com/ostanlabs/agent-execution-layer) |
+| **Main Repo** | [github.com/ostanlabs/ploston](https://github.com/ostanlabs/ploston) |
+| **CLI Package** | [pypi.org/project/ploston-cli](https://pypi.org/project/ploston-cli/) |
+| **Core Package** | [pypi.org/project/ploston-core](https://pypi.org/project/ploston-core/) |
 | **Netlify Dashboard** | [app.netlify.com/projects/ostanlabs](https://app.netlify.com/projects/ostanlabs) |
 
 ---
