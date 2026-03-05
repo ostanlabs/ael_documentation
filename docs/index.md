@@ -1,226 +1,169 @@
 # Ploston
 
-**LLM plans. Ploston executes.**
+**LLMs plan. Ploston executes.**
+
+Ploston is a deterministic execution layer for AI agents. You define multi-step workflows in YAML, Ploston exposes them as MCP tools, and your agent calls them with a single invocation.
 
 ---
 
-## The Problem
+## The problem
 
-Today's AI agents orchestrate their own tool calls. The LLM decides which tool to call, interprets the result, decides the next step, and repeats—burning tokens and hallucinating along the way.
+When an agent orchestrates its own tool calls, every intermediate result passes through the LLM. A 3-step task burns ~10,000 tokens. Run it twice and you may get different results. When something fails, you get a reasoning blob with no trace.
 
-This creates five systemic failures:
+![General agent flow diagram showing LLM orchestrating every tool call](assets/images/general_flow_diagram.svg)
 
-| Failure | What Happens |
-|---------|--------------|
-| **Unreliable** | LLMs hallucinate steps, misuse tools, forget context mid-chain |
-| **Expensive** | Every action requires another LLM round-trip. Multi-step tasks explode in cost. |
-| **Non-deterministic** | Same request produces different behavior. Impossible to test or guarantee. |
-| **Opaque** | No audit trail. Just a blob of reasoning you can't inspect or replay. |
-| **Ungovernable** | No policy enforcement. No compliance. No safety guarantees. |
+## The solution
 
-No enterprise will deploy this in production. No developer wants to debug it.
+Ploston moves orchestration out of the LLM. Same 3-step task: ~500 tokens. Same inputs → same outputs, every time. Full step-by-step trace.
+
+![Ploston flow diagram showing deterministic workflow execution replacing LLM orchestration](assets/images/ploston_flow.svg)
+
+**[Why this matters →](why-ploston.md)**
 
 ---
 
-## The Solution
-
-Ploston moves orchestration out of the LLM and into a deterministic runtime.
-
-```mermaid
-flowchart LR
-    subgraph TODAY["TODAY"]
-        A["LLM = planner + executor<br/>(fragile, expensive)"]
-    end
-    subgraph WITHPLOSTON["WITH Ploston"]
-        B["LLM = planner"]
-        C["Ploston = executor<br/>(deterministic, fast)"]
-    end
-```
-
-You define workflows in YAML. Ploston exposes them as MCP tools. When your agent needs to scrape a website, transform the data, and publish it—it makes **one call** to your workflow. Ploston handles the rest.
-
-Same inputs. Same outputs. Every time.
-
----
-
-## How It Works
-
-```mermaid
-flowchart TB
-    Agent["Agent (Claude, GPT, etc.)"]
-    Agent -->|"MCP call: workflow:scrape-and-publish"| Ploston
-
-    subgraph Ploston["Ploston"]
-        direction TB
-        S1["Step 1: fetch_url"]
-        S2["Step 2: extract_data"]
-        S3["Step 3: validate_schema"]
-        S4["Step 4: publish_to_kafka"]
-        S1 --> S2 --> S3 --> S4
-
-        Features["✓ Deterministic execution<br/>✓ Full trace and audit log<br/>✓ Built-in retry and errors"]
-    end
-
-    Ploston --> Result["Result returned to agent"]
-```
-
-*The ✓ marks indicate guarantees Ploston provides: deterministic execution (same inputs → same outputs), complete audit trails, and automatic retry/error handling.*
-
-The agent doesn't orchestrate. It delegates to infrastructure that executes reliably.
-
-**[Learn how this works →](concepts/how-ploston-works.md)**
-
----
-
-## Quick Start
+## Quick start
 
 ```bash
-# Install the CLI
-pip install ploston-cli
-
-# Run a workflow
-ploston run workflows/hello-world.yaml
-
-# Start as MCP server (connect to Claude Desktop)
-ploston serve
+pip install ploston-cli       # install the CLI
+ploston bootstrap             # deploy the Control Plane (Docker)
+ploston init --import         # import your MCP tools, start local runner
+# restart Claude Desktop
 ```
 
-**[Get Started →](getting-started/installation.md)**
+**[Full installation guide →](getting-started/installation.md)**
 
 ---
 
-## What You Get
+## How it works
 
-### OSS (Available Now)
-
-- **Workflow Engine** — YAML-defined, deterministic execution
-- **MCP Native** — Expose workflows as tools agents can call
-- **Python Code Steps** — Sandboxed execution with 7-layer security
-- **CLI** — Manage, test, and run workflows locally
-- **Telemetry** — Execution traces and structured logging
-
-### Enterprise (Coming Soon)
-
-- **Governance** — RBAC, ABAC, policy enforcement
-- **Advanced Workflows** — Parallel execution, human approval, compensation
-- **Pattern Mining** — Detect repeated tool chains, suggest workflows
-- **Workflow Synthesis** — LLM-generated workflows from observed patterns
-- **Cost Accounting** — Track token savings, report ROI
-
-**[See Roadmap →](roadmap.md)**
-
----
-
-## Why Ploston?
-
-Ploston is not an API gateway. It's not a workflow engine. It's not an agent framework.
-
-It's the **execution layer** that makes agent systems production-ready.
-
-**[Learn why this matters →](why-ploston.md)**
-
----
-
-## Architecture
-
-```mermaid
-flowchart TB
-    Agent["AI Agent / Client"]
-
-    Agent -->|"MCP Protocol / REST API"| Ploston
-
-    subgraph Ploston["Ploston"]
-        direction TB
-        subgraph Components[" "]
-            direction LR
-            WE["Workflow<br/>Engine"]
-            TR["Tool<br/>Registry"]
-            MF["MCP Frontend<br/>(stdio or HTTP)"]
-        end
-        Sandbox["Python Sandbox (Code Steps)"]
-        Components --> Sandbox
-    end
-
-    Ploston -->|"MCP Protocol"| External
-
-    subgraph External["External MCP Servers"]
-        Tools["filesystem, fetch, databases, custom tools, etc."]
-    end
+```
+┌──────────────┐  MCP (stdio/HTTP)  ┌───────────────────────────┐
+│ Claude / any │ ◄────────────────► │  Ploston Control Plane    │
+│  MCP client  │                    │  ┌──────────┐ ┌─────────┐ │
+└──────────────┘                    │  │ Workflow │ │  Tool   │ │
+                                    │  │ Engine   │ │Registry │ │
+                                    │  └────┬─────┘ └────┬────┘ │
+                                    └───────┼────────────┼──────┘
+                                            │  WebSocket │
+                                    ┌───────▼────────────▼──────┐
+                                    │       Local Runner        │
+                                    │  github, postgres, slack, │
+                                    │  your custom MCP servers  │
+                                    └───────────────────────────┘
 ```
 
-### Key Concepts
+**Control Plane** — workflow engine, MCP frontend, tool registry, REST API. Runs in Docker.
 
-| Concept | Description |
-|---------|-------------|
-| **Workflow** | A YAML file defining a sequence of steps to execute |
-| **Step** | Either a code step (Python) or a tool step (MCP tool call) |
-| **MCP Server** | External service providing tools via Model Context Protocol |
-| **Tool** | A function that can be called from workflows or by AI agents |
+**Local Runner** — connects your local MCP servers to the CP over WebSocket. Your tools never leave your machine.
+
+**Workflows** — YAML files. Once registered, appear as `w_<name>` MCP tools.
+
+---
+
+## Write a workflow
+
+```yaml
+name: page-report
+version: "1.0.0"
+description: "Fetch a URL and save a title report"
+
+inputs:
+  - name: url
+    type: string
+
+steps:
+  - id: fetch
+    tool: http_request
+    params:
+      url: "{{ inputs.url }}"
+      method: GET
+
+  - id: extract
+    depends_on: [fetch]
+    code: |
+      import re
+      body  = context.steps["fetch"].output.get("body", "")
+      match = re.search(r"<title[^>]*>(.*?)</title>", body, re.IGNORECASE)
+      result = {"title": match.group(1).strip() if match else "No title"}
+
+  - id: save
+    depends_on: [extract]
+    tool: fs_write
+    params:
+      path: "report.txt"
+      content: "Title: {{ steps.extract.output.title }}\n"
+
+outputs:
+  - name: title
+    from: steps.extract.output.title
+```
+
+```bash
+ploston validate page-report.yaml   # check it
+ploston run page-report.yaml -i url=https://example.com   # test it
+```
+
+Claude can now call `w_page-report` as a single MCP tool.
+
+**[First workflow tutorial →](getting-started/first-workflow.md)**
+
+---
+
+## What's included
+
+| | OSS (available now) | Enterprise (planned) |
+|---|---|---|
+| Workflow engine | ✅ | ✅ |
+| MCP integration | ✅ | ✅ |
+| Python sandbox | ✅ | ✅ |
+| CLI + REST API | ✅ | ✅ |
+| Docker + K8s deploy | ✅ | ✅ |
+| Prometheus + Grafana | ✅ | ✅ |
+| RBAC / policy engine | — | Phase 4 |
+| Parallel execution | — | Phase 4 |
+| Pattern mining | — | Phase 5 |
+| Workflow synthesis | — | Phase 5 |
+
+**[Full roadmap →](roadmap.md)**
 
 ---
 
 ## Documentation
 
-### Getting Started
+**Getting started**
+→ [Installation](getting-started/installation.md) — deploy in 5 minutes
+→ [Quickstart](getting-started/quickstart.md) — write and call your first workflow
+→ [First Workflow Tutorial](getting-started/first-workflow.md) — step-by-step with tool calls
 
-| Guide | Description |
-|-------|-------------|
-| [Installation](getting-started/installation.md) | Install from source or Docker |
-| [Quickstart](getting-started/quickstart.md) | 5-minute introduction to Ploston |
-| [First Workflow](getting-started/first-workflow.md) | Step-by-step workflow tutorial |
+**Concepts**
+→ [How Ploston Works](concepts/how-ploston-works.md) — planning vs execution separation
+→ [Execution Model](concepts/execution-model.md) — steps, data flow, error handling
+→ [Security Model](concepts/security-model.md) — 7-layer sandbox
+→ [Workflows as Tools](concepts/workflows-as-tools.md) — MCP tool publishing
 
-### Concepts
+**Guides**
+→ [Workflow Authoring](guides/workflow-authoring.md)
+→ [Code Steps](guides/code-steps.md)
+→ [Tool Integration](guides/tool-integration.md)
+→ [Docker Deployment](guides/docker.md)
+→ [Troubleshooting](guides/troubleshooting.md)
 
-| Concept | Description |
-|---------|-------------|
-| [How Ploston Works](concepts/how-ploston-works.md) | Core mental model: planning vs execution |
-| [Execution Model](concepts/execution-model.md) | Step execution, data flow, error handling |
-| [Security Model](concepts/security-model.md) | 7-layer sandbox security |
-| [Workflows as Tools](concepts/workflows-as-tools.md) | Virtual tool publishing via MCP |
-
-### Guides
-
-| Guide | Description |
-|-------|-------------|
-| [Workflow Authoring](guides/workflow-authoring.md) | Complete guide to writing workflows |
-| [Code Steps](guides/code-steps.md) | Using Python code in workflows |
-| [Tool Integration](guides/tool-integration.md) | Connecting MCP tools |
-| [Troubleshooting](guides/troubleshooting.md) | Common issues and solutions |
-
-### Reference
-
-| Reference | Description |
-|-----------|-------------|
-| [CLI Reference](reference/cli-reference.md) | All CLI commands and options |
-| [Workflow Schema](reference/workflow-schema.md) | Complete YAML schema reference |
-| [Configuration](reference/config-reference.md) | Configuration file options |
-| [Error Codes](reference/error-codes.md) | Error codes and resolutions |
-
-### Examples
-
-| Example | Description |
-|---------|-------------|
-| [Web Scraping](examples/web-scraping.md) | Extract data from websites |
-| [Data Processing](examples/data-processing.md) | Transform and process data |
-| [API Integration](examples/api-integration.md) | Integrate with external APIs |
+**Reference**
+→ [CLI Reference](reference/cli-reference.md)
+→ [Workflow Schema](reference/workflow-schema.md)
+→ [Configuration](reference/config-reference.md)
+→ [Error Codes](reference/error-codes.md)
 
 ---
 
-## System Requirements
+## System requirements
 
-- **Python**: 3.12 or higher
-- **OS**: macOS, Linux, Windows
-- **Memory**: 512MB minimum, 1GB recommended
-
----
-
-## Getting Help
-
-- **GitHub Issues**: [Report bugs or request features](https://github.com/ostanlabs/ploston/issues)
-- **Discussions**: [Ask questions and share ideas](https://github.com/ostanlabs/ploston/discussions)
-
----
+- Python 3.12+
+- Docker & Docker Compose v2.20+
+- macOS, Linux, or Windows (WSL2)
+- 2 GB RAM recommended
 
 ## License
 
-Ploston is released under the [Apache 2.0 License](https://github.com/ostanlabs/ploston/blob/main/LICENSE).
+[Apache 2.0](https://github.com/ostanlabs/ploston/blob/main/LICENSE)

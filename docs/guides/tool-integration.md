@@ -1,255 +1,265 @@
 # Tool Integration Guide
 
-This guide explains how to integrate and use tools in Ploston workflows.
+How to use MCP tools in Ploston workflows.
 
-## Tool Types
+---
 
-Ploston supports three types of tools:
+## Two ways to call a tool
 
-| Type | Description | Example |
-|------|-------------|---------|
-| **System** | Built-in tools | `python_exec` |
-| **MCP** | Tools from MCP servers | `fs_read`, `kafka_publish` |
-| **HTTP** | REST API endpoints | Custom API wrappers |
-
-## Built-in Tools
-
-### python_exec
-
-Execute Python code in a secure sandbox.
-
-```yaml
-steps:
-  - id: calculate
-    tool: python_exec
-    params:
-      code: |
-        import math
-        result = math.sqrt(16)
-```
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `code` | string | Yes | Python code to execute |
-| `timeout` | int | No | Execution timeout (seconds) |
-
-## MCP Server Tools
-
-MCP (Model Context Protocol) servers provide tools via a standardized protocol.
-
-### Configuring MCP Servers
-
-Add MCP servers to your `ael-config.yaml`:
-
-```yaml
-tools:
-  mcp_servers:
-    # Filesystem tools
-    filesystem:
-      command: "npx"
-      args: ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"]
-    
-    # GitHub tools
-    github:
-      command: "npx"
-      args: ["-y", "@modelcontextprotocol/server-github"]
-      env:
-        GITHUB_TOKEN: "${GITHUB_TOKEN}"
-    
-    # Custom MCP server
-    native_tools:
-      command: "python"
-      args: ["-m", "native_tools.server"]
-      env:
-        WORKSPACE_DIR: "${WORKSPACE_DIR:-.}"
-```
-
-### Available MCP Servers
-
-Popular MCP servers from the community:
-
-| Server | Package | Tools |
-|--------|---------|-------|
-| Filesystem | `@modelcontextprotocol/server-filesystem` | File read/write/list |
-| GitHub | `@modelcontextprotocol/server-github` | Repo, issues, PRs |
-| Fetch | `@modelcontextprotocol/server-fetch` | HTTP requests |
-| Postgres | `@modelcontextprotocol/server-postgres` | Database queries |
-
-### Native Tools Server
-
-Ploston includes a native tools MCP server with these tools:
-
-| Category | Tools |
-|----------|-------|
-| Filesystem | `fs_read`, `fs_write`, `fs_list`, `fs_delete` |
-| Network | `http_request`, `network_ping`, `network_dns_lookup` |
-| Kafka | `kafka_publish`, `kafka_list_topics`, `kafka_consume` |
-| Firecrawl | `firecrawl_search`, `firecrawl_map`, `firecrawl_extract` |
-| Data | `data_validate`, `data_json_to_csv`, `data_csv_to_json` |
-| Extraction | `extract_text`, `extract_structured` |
-| ML | `ml_embed_text`, `ml_text_similarity` |
-
-## Using Tools in Workflows
-
-### Tool Steps
-
-Call a tool directly:
-
-```yaml
-steps:
-  - id: read_file
-    tool: fs_read
-    params:
-      path: "data/input.json"
-```
-
-### Tool Calls from Code Steps
-
-Call tools from Python code:
-
-```yaml
-steps:
-  - id: process
-    code: |
-      # Read file using tool
-      content = call_tool("fs_read", {"path": "data/input.json"})
-      
-      # Process the content
-      data = json.loads(content["content"])
-      result = {"count": len(data)}
-```
-
-### Conditional Tool Calls
-
-```yaml
-steps:
-  - id: check
-    code: |
-      result = {"needs_fetch": True}
-  
-  - id: fetch_data
-    tool: http_request
-    params:
-      url: "https://api.example.com/data"
-    when: "{{ steps.check.output.needs_fetch }}"
-```
-
-## Listing Available Tools
-
-Use the CLI to see available tools:
-
-```bash
-# List all tools
-ploston tools list
-
-# Filter by source
-ploston tools list --source mcp
-ploston tools list --source system
-
-# Show tool details
-ploston tools show fs_read
-```
-
-Example output:
-
-```
-NAME              SOURCE   SERVER        STATUS      DESCRIPTION
-─────────────────────────────────────────────────────────────────
-fs_read           mcp      native_tools  available   Read file content
-fs_write          mcp      native_tools  available   Write file content
-kafka_publish     mcp      native_tools  available   Publish to Kafka
-python_exec       system   -             available   Execute Python code
-
-Total: 4 tools (4 available)
-```
-
-## Tool Input/Output
-
-### Input Schema
-
-Tools define their input parameters via JSON Schema:
-
-```bash
-ploston tools show fs_read
-```
-
-```yaml
-Tool: fs_read
-Description: Read file content from workspace
-
-Input Schema:
-  type: object
-  properties:
-    path:
-      type: string
-      description: File path relative to workspace
-    encoding:
-      type: string
-      default: utf-8
-  required:
-    - path
-```
-
-### Output Handling
-
-Tool outputs are available in subsequent steps:
-
-```yaml
-steps:
-  - id: read
-    tool: fs_read
-    params:
-      path: "config.json"
-  
-  - id: process
-    code: |
-      # Access tool output
-      file_content = "{{ steps.read.output.content }}"
-      result = json.loads(file_content)
-```
-
-## Error Handling
-
-### Tool Errors
-
-Handle tool failures gracefully:
+### Tool steps (recommended for single calls)
 
 ```yaml
 steps:
   - id: fetch
     tool: http_request
     params:
-      url: "https://api.example.com/data"
-    on_error: continue  # Don't fail workflow
-  
-  - id: handle_error
-    code: |
-      if "{{ steps.fetch.error }}":
-        result = {"status": "failed", "fallback": True}
-      else:
-        result = "{{ steps.fetch.output }}"
+      url: "{{ inputs.url }}"
+      method: GET
 ```
 
-### Retry Configuration
+Clean, declarative, retry/timeout/error handling all configurable.
 
-Configure retries in workflow:
+### Tool calls from code steps (for conditional or iterative use)
+
+```python
+# Inside a code step
+response = await context.tools.call("http_request", {
+    "url": context.inputs["url"],
+    "method": "GET"
+})
+result = response
+```
+
+Use this when you need a loop, a conditional, or want to branch based on a tool's output before deciding whether to call another.
+
+---
+
+## Native tools (always available)
+
+Ploston includes a native-tools server that starts with the Control Plane. These tools are available in every workflow without any additional configuration.
+
+### Filesystem
+
+| Tool | Description |
+|------|-------------|
+| `fs_read` | Read a file — returns `{"content": "..."}` |
+| `fs_write` | Write a file — returns `{"path": "...", "bytes_written": N}` |
+| `fs_list` | List directory contents |
+| `fs_delete` | Delete a file or directory |
+
+```yaml
+- id: read_config
+  tool: fs_read
+  params:
+    path: "config/settings.json"
+    format: json            # "text" (default) | "json" | "yaml"
+```
+
+```yaml
+- id: save_output
+  tool: fs_write
+  params:
+    path: "results/output.txt"
+    content: "{{ steps.process.output.text }}"
+    format: text
+    overwrite: true
+    create_dirs: true       # create parent directories if needed
+```
+
+### Network
+
+| Tool | Description |
+|------|-------------|
+| `http_request` | HTTP request with retry — returns `{"status_code", "body", "headers"}` |
+| `network_ping` | Ping a host |
+| `network_dns_lookup` | DNS lookup |
+| `network_port_check` | Check if a port is open |
+
+```yaml
+- id: api_call
+  tool: http_request
+  params:
+    url: "https://api.example.com/data"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ inputs.token }}"
+      Content-Type: "application/json"
+    data:
+      key: "value"
+    timeout: 30
+```
+
+### Data transformation
+
+| Tool | Description |
+|------|-------------|
+| `data_validate` | Validate data against a JSON Schema |
+| `data_json_to_csv` | JSON array → CSV string |
+| `data_csv_to_json` | CSV string → JSON array |
+| `data_json_to_xml` | JSON → XML |
+| `data_xml_to_json` | XML → JSON |
+
+### Extraction
+
+| Tool | Description |
+|------|-------------|
+| `extract_text` | Extract plain text from HTML, PDF, or other sources |
+| `extract_structured` | Extract structured data using regex or CSS patterns |
+| `extract_file_metadata` | Get file metadata (size, mime type, modification time) |
+
+### Kafka
+
+Requires `KAFKA_BOOTSTRAP_SERVERS` to be configured.
+
+| Tool | Description |
+|------|-------------|
+| `kafka_publish` | Publish a message to a topic |
+| `kafka_consume` | Consume messages from a topic |
+| `kafka_list_topics` | List all topics |
+| `kafka_create_topic` | Create a new topic |
+| `kafka_health` | Check Kafka cluster health |
+
+### Firecrawl
+
+Requires `FIRECRAWL_BASE_URL` (and optionally `FIRECRAWL_API_KEY`) to be configured.
+
+| Tool | Description |
+|------|-------------|
+| `firecrawl_search` | Web search |
+| `firecrawl_map` | Map all URLs on a website |
+| `firecrawl_extract` | Extract structured data from URLs |
+
+### ML (Ollama)
+
+Requires a running Ollama instance (default: `host.docker.internal:11434`).
+
+| Tool | Description |
+|------|-------------|
+| `ml_embed_text` | Generate text embeddings |
+| `ml_text_similarity` | Cosine or Euclidean similarity between two texts |
+| `ml_classify_text` | Classify text into predefined categories |
+| `ml_analyze_sentiment` | Sentiment analysis (lexicon-based, no Ollama needed) |
+
+---
+
+## External MCP servers
+
+Any MCP server you've imported via `ploston init --import` is available as a tool. Tool names follow the pattern:
+
+```
+local__<server-name>__<tool-name>
+```
+
+For example, if you imported the GitHub MCP server:
+
+```yaml
+- id: create_issue
+  tool: local__github__create_issue
+  params:
+    owner: "{{ inputs.org }}"
+    repo: "{{ inputs.repo }}"
+    title: "{{ inputs.title }}"
+    body: "{{ steps.format.output.body }}"
+```
+
+Run `ploston tools list` to see all available tools and their exact names.
+
+---
+
+## Listing and inspecting tools
+
+```bash
+# List all tools
+ploston tools list
+
+# Filter by server
+ploston tools list --server native-tools
+ploston tools list --server github
+
+# Inspect a tool's input schema
+ploston tools show http_request
+ploston tools show local__github__create_issue
+```
+
+Example `tools list` output:
+
+```
+NAME                              SERVER        STATUS
+─────────────────────────────────────────────────────
+fs_read                           native-tools  available
+fs_write                          native-tools  available
+http_request                      native-tools  available
+kafka_publish                     native-tools  available
+local__github__create_issue       github        available
+local__github__search_code        github        available
+w_page-report                     workflows     available
+w_summarize-url                   workflows     available
+
+Total: 8 tools
+```
+
+---
+
+## Tool step options
 
 ```yaml
 steps:
-  - id: unreliable_call
+  - id: unreliable_api
     tool: http_request
     params:
-      url: "https://flaky-api.example.com"
+      url: "https://flaky-api.example.com/data"
+
+    timeout: 60             # override default timeout (seconds)
+
+    on_error: retry         # fail (default) | skip | retry
+
     retry:
       max_attempts: 3
-      backoff: exponential
+      initial_delay: 1.0    # seconds before first retry
+      max_delay: 30.0       # cap on delay
+      backoff_multiplier: 2.0
 ```
 
-## Creating Custom MCP Servers
+### Error handling options
 
-Create your own MCP server using FastMCP:
+| `on_error` | Behaviour |
+|------------|-----------|
+| `fail` (default) | Step fails → workflow stops |
+| `skip` | Step failure is ignored, workflow continues with `null` output |
+| `retry` | Retry up to `max_attempts` times with backoff, then fail |
+
+---
+
+## Calling tools from code steps
+
+For conditional or iterative tool use:
+
+```yaml
+steps:
+  - id: process_list
+    code: |
+      urls  = context.inputs["urls"]   # list from workflow input
+      found = []
+
+      for url in urls[:10]:            # loop — use a tool step for single calls
+          response = await context.tools.call("http_request", {
+              "url": url,
+              "method": "GET",
+              "timeout": 10
+          })
+          if response.get("status_code") == 200:
+              found.append(url)
+
+      result = {"reachable": found, "count": len(found)}
+```
+
+**Limit:** 10 tool calls per code step by default. Configure in `python_exec.max_tool_calls`.
+
+---
+
+## Adding a custom MCP server
+
+Create a FastMCP server:
 
 ```python
 # my_tools/server.py
@@ -258,37 +268,32 @@ from fastmcp import FastMCP
 mcp = FastMCP("my-tools")
 
 @mcp.tool()
-def my_custom_tool(param1: str, param2: int = 10) -> dict:
-    """My custom tool description."""
-    return {"result": f"{param1} x {param2}"}
+def lookup_customer(customer_id: str) -> dict:
+    """Look up a customer record."""
+    return {"id": customer_id, "name": "Alice", "tier": "premium"}
 
 if __name__ == "__main__":
     mcp.run()
 ```
 
-Configure in `ael-config.yaml`:
+Import it into Ploston:
 
-```yaml
-tools:
-  mcp_servers:
-    my_tools:
-      command: "python"
-      args: ["-m", "my_tools.server"]
+```bash
+ploston init --import --add-server "my-tools:python -m my_tools.server"
 ```
 
-## Best Practices
+Or add it via `ploston init --import` on the next run — it will appear as a new server to select.
 
-1. **Use descriptive tool names** - Makes workflows readable
-2. **Handle errors** - Use `on_error` and fallback logic
-3. **Set timeouts** - Prevent hanging on slow tools
-4. **Validate inputs** - Check parameters before tool calls
-5. **Log tool calls** - Enable tool logging for debugging
+---
 
-```yaml
-logging:
-  components:
-    tool: true
-  options:
-    show_params: true
-    show_results: true
-```
+## Best practices
+
+**Use tool steps for single calls** — they're easier to read, test, and configure with retry/timeout.
+
+**Use code steps for logic** — conditional tool calls, loops over lists, fan-in patterns.
+
+**Always set timeouts on external calls** — network tools have no default timeout at the MCP level; set one at the step level.
+
+**Handle partial failures** — if a tool is non-critical, use `on_error: skip` and check `steps.id.output` for `null` downstream.
+
+**Log tool calls in development** — set `logging.options.show_params: true` in your config to see parameters in logs.

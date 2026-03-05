@@ -8,6 +8,8 @@ If you understand this, everything else makes sense.
 
 ## The Problem: LLM-Driven Orchestration
 
+![General agent flow — LLM as planner and executor](../assets/images/general_flow_diagram.svg)
+
 When an agent orchestrates its own tool calls, here's what happens:
 
 ```
@@ -51,6 +53,20 @@ Same input, different output. Good luck testing that.
 
 ---
 
+## A Concrete Example: Firecrawl Link Extraction
+
+A user asks: *"Find all BBC articles about Christmas and create a reminder for each one."*
+
+Without Ploston, the agent has to orchestrate ~150 individual tool calls — passing all 300 links through the LLM context window, burning thousands of tokens, and likely crashing with a context overflow error:
+
+![Firecrawl use case without Ploston — LLM issues 150+ calls, errors out](../assets/images/firecrawl_flow.svg)
+
+With Ploston, the agent calls a single workflow. Ploston fetches all 300 links, loops over them deterministically, creates every reminder — without a single additional LLM token:
+
+![Firecrawl use case with Ploston — single workflow call, 94% token savings](../assets/images/ploston_flow.svg)
+
+---
+
 ## The Solution: Deterministic Execution
 
 Ploston inverts the model. The agent makes **one decision** (which workflow to call), and Ploston handles the **execution**.
@@ -63,7 +79,7 @@ sequenceDiagram
 
     User->>Agent: "Get top stories from HN and save them to a file"
     Note over Agent: "This matches my scrape-and-save workflow"
-    Agent->>Ploston: workflow:scrape-and-save(url="...", path="stories.txt")
+    Agent->>Ploston: w_scrape-and-save(url="...", path="stories.txt")
 
     Note over Ploston: Step 1: firecrawl_scrape ✓ 1.2s
     Note over Ploston: Step 2: extract_titles ✓ 0.1s
@@ -137,12 +153,12 @@ version: "1.0"
 description: "Scrape a URL and save extracted content to a file"
 
 inputs:
-  - url:
-      type: string
-      description: "URL to scrape"
-  - path:
-      type: string
-      description: "File path to save results"
+  - name: url
+    type: string
+    description: "URL to scrape"
+  - name: path
+    type: string
+    description: "File path to save results"
 
 steps:
   - id: fetch
@@ -153,15 +169,16 @@ steps:
   - id: extract
     code: |
       import re
-      content = context.steps['fetch'].output['markdown']
-      titles = re.findall(r'^##\s*(.+)$', content, re.MULTILINE)
-      return {"titles": titles}
+      content = context.steps["fetch"].output.get("markdown", "")
+      titles = re.findall(r"^##\s*(.+)$", content, re.MULTILINE)
+      result = {"titles": titles}
       
   - id: save
-    tool: write_file
+    tool: fs_write
     params:
       path: "{{ inputs.path }}"
       content: "{{ steps.extract.output.titles | join('\n') }}"
+      format: text
 
 outputs:
   - saved_path:
@@ -174,13 +191,13 @@ When Ploston starts, this workflow appears as a tool:
 
 ```
 Tools available:
-  - workflow:scrape-and-save
+  - w_scrape-and-save
   - firecrawl_scrape
   - write_file
   - ...
 ```
 
-The agent sees `workflow:scrape-and-save` as just another tool. It doesn't know or care that it's a multi-step workflow. It calls it like any other tool, and Ploston handles the execution.
+The agent sees `w_scrape-and-save` as just another tool. It doesn't know or care that it's a multi-step workflow. It calls it like any other tool, and Ploston handles the execution.
 
 ---
 

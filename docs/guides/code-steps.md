@@ -1,269 +1,258 @@
 # Code Steps Guide
 
-Complete guide to using Python code in Ploston workflows.
+Code steps execute Python in a secure sandbox. Use them when you need logic, transformation, or conditional behaviour between tool calls.
 
-## Overview
-
-Code steps execute Python code in a secure sandbox environment. They're useful for:
-
-- Data transformation and processing
-- Conditional logic
-- Calculations and aggregations
-- Formatting output
-
-## Basic Syntax
-
-```yaml
-steps:
-  - id: my_step
-    code: |
-      # Your Python code here
-      data = "{{ inputs.data }}"
-      result = data.upper()
-```
-
-**Important:** Every code step must set a `result` variable. This becomes the step's output.
-
-## Accessing Data
-
-### Inputs
-
-Access workflow inputs using Jinja2 templates:
+## Basic syntax
 
 ```yaml
 steps:
   - id: process
     code: |
-      name = "{{ inputs.name }}"
-      count = {{ inputs.count }}
-      result = f"Hello {name}, count is {count}"
+      # Your Python here.
+      # Assign the step's output to the 'result' variable.
+      data = context.inputs["data"]
+      result = data.upper()
 ```
 
-### Previous Step Outputs
+**`result =` is required.** The sandbox captures whatever you assign to `result` and makes it available to subsequent steps as `steps.process.output`. If you don't set `result`, the step returns `None`.
 
-Access outputs from previous steps:
+---
+
+## Accessing context
+
+The sandbox injects a `context` object with three attributes:
+
+### `context.inputs`
+
+Access workflow inputs by name:
+
+```python
+url   = context.inputs["url"]           # raises KeyError if missing
+limit = context.inputs.get("limit", 10) # safe with default
+```
+
+### `context.steps`
+
+Access output from any completed step:
+
+```python
+response = context.steps["fetch"].output        # full output object
+body     = context.steps["fetch"].output["body"] # nested field
+count    = context.steps["fetch"].output.get("count", 0)
+```
+
+### `context.tools.call()`
+
+Call any MCP tool from within a code step:
+
+```python
+response = await context.tools.call("http_request", {
+    "url": context.inputs["url"],
+    "method": "GET"
+})
+result = response.get("body", "")
+```
+
+Tool calls from code are rate-limited (default: 10 per step). Use tool steps for single calls; code steps for conditional or iterative logic.
+
+---
+
+## Complete example
 
 ```yaml
 steps:
-  - id: step1
-    code: |
-      result = {"items": [1, 2, 3]}
+  - id: fetch
+    tool: http_request
+    params:
+      url: "{{ inputs.url }}"
+      method: GET
 
-  - id: step2
-    depends_on: [step1]
+  - id: process
+    depends_on: [fetch]
     code: |
-      data = {{ steps.step1.output }}
-      result = sum(data["items"])
+      import re
+      from datetime import datetime
+
+      # Access previous step output
+      body = context.steps["fetch"].output.get("body", "")
+
+      # Extract title
+      match = re.search(r"<title[^>]*>(.*?)</title>", body, re.IGNORECASE)
+      title = match.group(1).strip() if match else "Unknown"
+
+      # Build result
+      result = {
+          "title": title,
+          "fetched_at": datetime.now().isoformat(),
+          "length": len(body),
+      }
 ```
 
-## Allowed Imports
+---
 
-The sandbox allows these standard library modules:
+## Allowed imports
 
-| Module | Description |
-|--------|-------------|
+| Module | Use for |
+|--------|---------|
 | `json` | JSON encoding/decoding |
 | `re` | Regular expressions |
 | `datetime` | Date and time handling |
 | `math` | Mathematical functions |
 | `random` | Random number generation |
-| `typing` | Type hints |
-| `collections` | Container datatypes |
-| `itertools` | Iterator functions |
-| `functools` | Higher-order functions |
-| `hashlib` | Secure hashes |
+| `collections` | `defaultdict`, `Counter`, `deque` |
+| `itertools` | Iteration utilities |
+| `functools` | `reduce`, `partial`, `lru_cache` |
+| `hashlib` | Hashing |
 | `uuid` | UUID generation |
 | `decimal` | Decimal arithmetic |
-| `statistics` | Statistical functions |
+| `statistics` | `mean`, `median`, `stdev` |
 | `operator` | Standard operators |
-| `copy` | Shallow/deep copy |
-| `time` | Time access |
+| `copy` | `copy`, `deepcopy` |
+| `time` | `time.sleep`, timestamps |
+| `typing` | Type hints |
 
-### Using Imports
+Use imports at the top of the code block:
 
-```yaml
-steps:
-  - id: process
-    code: |
-      import json
-      import re
-      from datetime import datetime
-      
-      data = json.loads('{{ inputs.json_data }}')
-      timestamp = datetime.now().isoformat()
-      result = {"data": data, "processed_at": timestamp}
+```python
+import json
+import re
+from datetime import datetime
+
+data = json.loads(context.inputs["json_data"])
+result = {"processed": True, "at": datetime.now().isoformat()}
 ```
 
-## Forbidden Operations
+---
 
-For security, these are **not allowed**:
+## Forbidden operations
 
-### Forbidden Builtins
+The sandbox blocks anything that can escape the execution environment.
 
-| Builtin | Reason |
-|---------|--------|
-| `eval()` | Arbitrary code execution |
-| `exec()` | Arbitrary code execution |
-| `compile()` | Code compilation |
-| `open()` | File system access |
-| `__import__()` | Dynamic imports |
-| `globals()` | Global namespace access |
-| `locals()` | Local namespace access |
-| `getattr()` | Attribute access |
-| `setattr()` | Attribute modification |
-| `delattr()` | Attribute deletion |
-| `breakpoint()` | Debugger access |
+### Forbidden builtins
 
-### Forbidden Imports
+`eval`, `exec`, `compile`, `open`, `__import__`, `globals`, `locals`, `getattr`, `setattr`, `delattr`, `breakpoint`
 
-These modules are **blocked**:
+### Forbidden imports
 
-- `os` - Operating system access
-- `sys` - System access
-- `subprocess` - Process execution
-- `socket` - Network access
-- `requests` - HTTP requests (use tool steps instead)
-- `urllib` - URL handling
-- `shutil` - File operations
-- `pathlib` - Path operations
+`os`, `sys`, `subprocess`, `socket`, `shutil`, `pathlib`, `urllib` (full module — `urllib.parse` is allowed), `requests`, `http`, `ctypes`, `pickle`
 
-## Calling Tools from Code
+### Forbidden attribute access
 
-Use the `tools.call()` method to call MCP tools:
+Any dunder that enables class hierarchy traversal or code object inspection: `__class__`, `__bases__`, `__mro__`, `__subclasses__`, `__code__`, `__globals__`, `__builtins__`
 
-```yaml
-steps:
-  - id: fetch_data
-    code: |
-      # Call an MCP tool
-      response = await tools.call("http_get", {
-          "url": "{{ inputs.api_url }}"
-      })
-      result = response
-```
+---
 
-### Tool Call Limits
+## Error handling inside code
 
-- Default: 10 tool calls per code step
-- Configurable via `python_exec.max_tool_calls`
-
-## Error Handling
-
-Handle errors within code steps:
+Use try/except to handle expected failures without failing the whole workflow:
 
 ```yaml
 steps:
   - id: safe_parse
     code: |
       import json
-      
+
       try:
-          data = json.loads('{{ inputs.json_data }}')
-          result = {"success": True, "data": data}
+          data = json.loads(context.inputs["json_data"])
+          result = {"ok": True, "data": data}
       except json.JSONDecodeError as e:
-          result = {"success": False, "error": str(e)}
+          result = {"ok": False, "error": str(e)}
 ```
+
+A downstream step can then branch on `steps.safe_parse.output["ok"]`.
+
+---
 
 ## Timeout
 
-Code steps have a default timeout of 30 seconds. Override per step:
+Default timeout is 30 seconds. Override per step:
 
 ```yaml
 steps:
-  - id: long_running
-    timeout: 120  # 2 minutes
+  - id: slow_computation
+    timeout: 120
     code: |
-      # Long-running computation
-      result = complex_calculation()
+      # Up to 2 minutes
+      result = expensive_calculation()
 ```
 
-## Best Practices
+---
 
-### 1. Keep Code Simple
+## Common patterns
 
-```yaml
-# Good: Simple, focused code
-steps:
-  - id: transform
-    code: |
-      data = {{ steps.fetch.output }}
-      result = [item["name"] for item in data]
+### JSON processing
+
+```python
+import json
+
+raw  = context.inputs["json_string"]
+data = json.loads(raw)
+result = json.dumps(data, indent=2)
 ```
 
-### 2. Use Multiple Steps
+### List transformation
 
-Break complex logic into multiple steps:
-
-```yaml
-steps:
-  - id: parse
-    code: |
-      import json
-      result = json.loads('{{ inputs.data }}')
-
-  - id: filter
-    depends_on: [parse]
-    code: |
-      data = {{ steps.parse.output }}
-      result = [x for x in data if x["active"]]
-
-  - id: format
-    depends_on: [filter]
-    code: |
-      items = {{ steps.filter.output }}
-      result = "\n".join(str(x) for x in items)
+```python
+items  = context.steps["fetch"].output["items"]
+result = [{"id": i, "value": x * 2} for i, x in enumerate(items)]
 ```
 
-### 3. Validate Input
+### Conditional logic
 
-```yaml
-steps:
-  - id: validate
-    code: |
-      value = {{ inputs.count }}
-      if not isinstance(value, int) or value < 0:
-          raise ValueError("count must be a positive integer")
-      result = value
+```python
+value = context.inputs["threshold"]
+if value > 100:
+    result = "high"
+elif value > 50:
+    result = "medium"
+else:
+    result = "low"
 ```
 
-## Common Patterns
+### Aggregation
 
-### JSON Processing
+```python
+from collections import defaultdict
 
-```yaml
-- id: process_json
-  code: |
-    import json
-    data = json.loads('{{ inputs.json_string }}')
-    result = json.dumps(data, indent=2)
+rows   = context.steps["query"].output["rows"]
+groups = defaultdict(list)
+for row in rows:
+    groups[row["category"]].append(row["value"])
+
+result = {k: sum(v) for k, v in groups.items()}
 ```
 
-### List Transformation
+### Calling a tool in a loop
 
-```yaml
-- id: transform_list
-  code: |
-    items = {{ steps.fetch.output }}
-    result = [{"id": i, "value": x * 2} for i, x in enumerate(items)]
+```python
+import json
+
+urls    = context.inputs["urls"]  # list of strings
+results = []
+
+for url in urls[:5]:  # respect rate limits — max 10 calls/step
+    resp = await context.tools.call("http_request", {"url": url, "method": "GET"})
+    results.append({"url": url, "status": resp.get("status_code")})
+
+result = results
 ```
 
-### Conditional Logic
+---
 
-```yaml
-- id: decide
-  code: |
-    value = {{ inputs.threshold }}
-    if value > 100:
-        result = "high"
-    elif value > 50:
-        result = "medium"
-    else:
-        result = "low"
-```
+## What the sandbox does NOT support
 
-## Next Steps
+- Reading or writing files — use `fs_read` / `fs_write` tool steps instead
+- Network access — use `http_request` tool steps instead
+- Spawning processes
+- Installing packages at runtime
 
-- [Workflow Authoring Guide](workflow-authoring.md) - Complete workflow reference
-- [Tool Integration Guide](tool-integration.md) - Using MCP tools
-- [Troubleshooting](troubleshooting.md) - Common issues
+All I/O goes through tool steps. Code steps handle transformation, logic, and aggregation.
 
+---
+
+## Next steps
+
+- [Workflow Authoring Guide](workflow-authoring.md) — full YAML reference
+- [Tool Integration Guide](tool-integration.md) — using MCP tools
+- [Security Model](../concepts/security-model.md) — sandbox security in depth
+- [Troubleshooting](troubleshooting.md) — common sandbox errors

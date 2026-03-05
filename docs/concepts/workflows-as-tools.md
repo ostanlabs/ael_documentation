@@ -10,7 +10,7 @@ This is Ploston's core differentiator: **workflows are first-class MCP citizens*
 
 When Ploston starts:
 1. Workflows are loaded from the configured directory
-2. Each workflow is registered as an MCP tool
+2. Each workflow is registered as an MCP tool with a `w_` prefix
 3. Agents discover workflows via standard MCP `tools/list`
 4. Agents call workflows via standard MCP `tools/call`
 
@@ -25,10 +25,10 @@ flowchart TB
             W3["report-generator.yaml"]
         end
 
-        subgraph Register["2. Register as MCP tools"]
-            T1["workflow:scrape-and-publish"]
-            T2["workflow:data-enrichment"]
-            T3["workflow:report-generator"]
+        subgraph Register["2. Register as MCP tools (w_ prefix)"]
+            T1["w_scrape-and-publish"]
+            T2["w_data-enrichment"]
+            T3["w_report-generator"]
         end
 
         subgraph Discover["3. Agent connects, calls tools/list"]
@@ -49,7 +49,7 @@ Workflow names don't change. The underlying implementation can evolve without br
 
 ```
 # Agent prompt (stable)
-"Use workflow:data-pipeline to process the data"
+"Use w_data-pipeline to process the data"
 
 # Workflow implementation (can change)
 v1.0: fetch → transform → save
@@ -65,7 +65,7 @@ One tool call instead of many. Agents don't need to know the steps.
 "First call firecrawl_scrape, then transform the result, then call kafka_publish..."
 
 # With Ploston: Single tool
-"Call workflow:scrape-and-publish with the URL"
+"Call w_scrape-and-publish with the URL"
 ```
 
 ### 3. Enforced Execution Boundaries
@@ -100,9 +100,9 @@ flowchart BT
 
     subgraph Ploston["Ploston Instance"]
         subgraph Workflows["Registered Workflows"]
-            W1["workflow:scrape-and-publish"]
-            W2["workflow:data-enrichment"]
-            W3["workflow:report-generator"]
+            W1["w_scrape-and-publish"]
+            W2["w_data-enrichment"]
+            W3["w_report-generator"]
         end
     end
 
@@ -117,18 +117,22 @@ flowchart BT
 
 ### Tool Naming Convention
 
-All workflows use the `workflow:` prefix:
+Workflows appear as MCP tools with the `w_` prefix:
 
 ```
-workflow:scrape-and-publish
-workflow:data-enrichment
-workflow:report-generator
+w_scrape-and-publish
+w_data-enrichment
+w_report-generator
 ```
 
-**Why the prefix?**
-- **Disambiguation** — Clear distinction from native tools
-- **Grouping** — Easy to filter workflow tools
-- **No collision** — Workflow can have same base name as native tool
+**Why `w_` and not `workflow:`?**
+
+The colon character (`:`) causes some MCP clients and agents to misinterpret tool names as HTTP/curl-style URIs rather than tool identifiers. The `w_` prefix is unambiguous, short, and grep-friendly.
+
+**Other tool naming patterns you'll see:**
+- `local__github__create_issue` — runner tool: `<runner>__<server>__<tool>`
+- `w_my-workflow` — workflow tool: `w_<workflow-name>`
+- `slack_post` — CP-side tool: `<tool-name>`
 
 ### From Workflow to Tool
 
@@ -159,12 +163,12 @@ steps:
     params:
       url: "{{ inputs.url }}"
       format: "{{ inputs.format }}"
-      
+
   - id: transform
     code: |
       data = context.steps['fetch'].output
       return {"content": data['content'], "url": context.inputs['url']}
-      
+
   - id: publish
     tool: kafka_produce
     params:
@@ -172,33 +176,22 @@ steps:
       message: "{{ steps.transform.output }}"
 
 outputs:
-  - name: result
-    from_path: steps.publish.output
-    description: "Kafka publish result"
+  result:
+    from: steps.publish.output
 ```
 
 **Generated MCP tool:**
 
 ```json
 {
-  "name": "workflow:scrape-and-publish",
+  "name": "w_scrape-and-publish",
   "description": "Scrape a URL and publish content to Kafka",
   "inputSchema": {
     "type": "object",
     "properties": {
-      "url": {
-        "type": "string",
-        "description": "URL to scrape"
-      },
-      "topic": {
-        "type": "string",
-        "description": "Kafka topic to publish to"
-      },
-      "format": {
-        "type": "string",
-        "enum": ["markdown", "html"],
-        "default": "markdown"
-      }
+      "url": { "type": "string", "description": "URL to scrape" },
+      "topic": { "type": "string", "description": "Kafka topic to publish to" },
+      "format": { "type": "string", "enum": ["markdown", "html"], "default": "markdown" }
     },
     "required": ["url", "topic"]
   }
@@ -210,28 +203,22 @@ outputs:
 Agents discover workflows via standard MCP:
 
 ```json
-// tools/list response
 {
   "tools": [
-    // Native tools
-    {"name": "firecrawl_scrape", "description": "..."},
-    {"name": "kafka_produce", "description": "..."},
-    
-    // Workflow tools (clearly distinguished by prefix)
-    {"name": "workflow:scrape-and-publish", "description": "..."},
-    {"name": "workflow:data-enrichment", "description": "..."}
+    { "name": "firecrawl_scrape", "description": "..." },
+    { "name": "kafka_produce", "description": "..." },
+    { "name": "local__github__create_issue", "description": "..." },
+    { "name": "w_scrape-and-publish", "description": "..." },
+    { "name": "w_data-enrichment", "description": "..." }
   ]
 }
 ```
 
 ### Agent Invocation
 
-Agents call workflows like any tool:
-
 ```json
-// tools/call request
 {
-  "name": "workflow:scrape-and-publish",
+  "name": "w_scrape-and-publish",
   "arguments": {
     "url": "https://example.com/article",
     "topic": "content-updates"
@@ -242,7 +229,6 @@ Agents call workflows like any tool:
 ### Response Format
 
 ```json
-// tools/call response
 {
   "content": [
     {
@@ -296,7 +282,7 @@ Agents can use the `retryable` flag to decide whether to retry.
 | Feature | Status | Phase |
 |---------|--------|-------|
 | **Workflow composition** (workflows calling workflows) | Planned | Enterprise |
-| **Version pinning** (`workflow:name@1.2.0`) | Planned | Enterprise |
+| **Version pinning** (`w_name@1.2.0`) | Planned | Enterprise |
 | **Per-workflow exposure control** | Planned | Enterprise |
 | **Partial results on failure** | Planned | Enterprise |
 
@@ -309,5 +295,3 @@ Agents can use the `retryable` flag to decide whether to retry.
 - **[How Ploston Works](./how-ploston-works.md)** — The planning vs execution separation
 - **[Execution Model](./execution-model.md)** — How workflows execute
 - **[Workflow Schema](../reference/workflow-schema.md)** — Complete YAML reference
-
-**← [Security Model](./security-model.md)** | **[Workflow Schema →](../reference/workflow-schema.md)**

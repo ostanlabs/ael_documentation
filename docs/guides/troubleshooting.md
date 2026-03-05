@@ -1,357 +1,325 @@
-# Troubleshooting Guide
+# Troubleshooting
 
-Common issues and solutions when using Ploston.
+Common issues and fixes, organised by where in the setup flow they appear.
 
-## Installation Issues
+---
 
-### "Command not found: ploston"
+## Bootstrap issues
 
-**Problem:** After running `uv sync`, the `ploston` command is not found.
+### Docker not found or not running
 
-**Solution:** Use one of these methods to run the CLI:
-
-```bash
-# Option 1: Use uv run (recommended)
-ploston --help
-
-# Option 2: Activate virtual environment
-source .venv/bin/activate
-ploston --help
-
-# Option 3: Direct path
-.venv/bin/ploston --help
+```
+Error: Docker Engine not detected.
+Please ensure Docker Desktop is running.
 ```
 
-### "Python 3.12+ required"
+Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and make sure it's started before running `ploston bootstrap`.
 
-**Problem:** Ploston requires Python 3.12 or higher.
+### Port already in use
 
-**Solution:**
-
-```bash
-# Check your Python version
-python --version
-
-# Install Python 3.12 using pyenv
-pyenv install 3.12
-pyenv local 3.12
-
-# Or use uv to manage Python
-uv python install 3.12
+```
+Error: Port 8082 is already in use (Control Plane).
 ```
 
-### "uv: command not found"
-
-**Problem:** uv package manager is not installed.
-
-**Solution:**
+Another process is on 8082. Either stop it, or override the port:
 
 ```bash
-# Install uv
-curl -LsSf https://astral.sh/uv/install.sh | sh
+# Edit ~/.ploston/.env
+AEL_PORT=8083
 
-# Add to PATH (if needed)
-export PATH="$HOME/.local/bin:$PATH"
-
-# Verify installation
-uv --version
+# Then regenerate and restart
+ploston bootstrap --regenerate
+ploston bootstrap up
 ```
 
-### "uv sync failed"
+### Images fail to pull
 
-**Problem:** Dependencies failed to install.
-
-**Solution:**
-
-```bash
-# Clear cache and retry
-uv cache clean
-uv sync
-
-# If still failing, check Python version
-uv python list
-uv python install 3.12
-uv sync
+```
+Error: Failed to pull ostanlabs/ploston:latest
 ```
 
-## Configuration Issues
-
-### "No config found"
-
-**Problem:** Ploston cannot find configuration file.
-
-**Solution:**
-
-Ploston searches for config in this order:
-1. `AEL_CONFIG_PATH` environment variable
-2. `./ael-config.yaml` (current directory)
-3. `~/.ploston/config.yaml` (home directory)
-
-Create a minimal config:
+Check your internet connection and Docker Hub access:
 
 ```bash
-cat > ael-config.yaml << EOF
-workflows:
-  directory: "./workflows"
-EOF
-
-mkdir -p workflows
+docker pull ostanlabs/ploston:latest   # test directly
 ```
 
-### "Configuration mode" instead of "Running mode"
+If you're behind a corporate proxy, configure Docker's proxy settings in Docker Desktop → Settings → Resources → Proxies.
 
-**Problem:** Ploston starts in configuration mode when you expect running mode.
-
-**Cause:** No valid config file found.
-
-**Solution:**
+### Control Plane starts but stays unhealthy
 
 ```bash
-# Check if config exists
-ls -la ael-config.yaml
-
-# Verify config is valid YAML
-python -c "import yaml; yaml.safe_load(open('ael-config.yaml'))"
-
-# Force running mode (will fail if no config)
-ploston serve --mode running
+ploston bootstrap logs --service ploston
 ```
 
-### "Invalid configuration"
+Common causes and fixes:
 
-**Problem:** Config file has syntax or validation errors.
+| Log message | Fix |
+|-------------|-----|
+| `Redis connection refused` | Wait 10s — Redis may still be starting. Run `ploston bootstrap up` again. |
+| `Config not found` | Run `ploston init --import` to push initial config. |
+| `Address already in use` | Another process on the CP port — see "Port already in use" above. |
 
-**Solution:**
+---
 
-```bash
-# Check YAML syntax
-python -c "import yaml; yaml.safe_load(open('ael-config.yaml'))"
+## `init --import` issues
 
-# Validate with Ploston
-ploston config show
+### No MCP configs found
+
+```
+No MCP configurations detected.
 ```
 
-Common config errors:
-- Indentation issues (use spaces, not tabs)
-- Missing required fields
-- Invalid enum values
-
-## Workflow Issues
-
-### "Workflow validation failed"
-
-**Problem:** Workflow YAML has errors.
-
-**Solution:**
+Ploston scans Claude Desktop and Cursor config files. If you haven't configured either, create a minimal Claude Desktop config first, or manually specify an MCP server:
 
 ```bash
-# Validate workflow
-ploston validate workflows/my-workflow.yaml
+ploston init --import --add-server "filesystem:npx -y @modelcontextprotocol/server-filesystem /tmp"
 ```
 
-Check for common issues:
-- Missing `name` field
-- Invalid step IDs (must be alphanumeric)
-- Missing `code` or `tool` in steps
-- Invalid Jinja2 syntax in templates
+### Secret not found in environment
 
-### "Tool not found"
+```
+⚠  GITHUB_TOKEN not set — github server will be imported without token
+```
 
-**Problem:** Workflow references a tool that does not exist.
-
-**Solution:**
+The importer detected a secret in your existing config that isn't in your environment. Either set the variable before running init:
 
 ```bash
-# List available tools
+export GITHUB_TOKEN=ghp_...
+ploston init --import
+```
+
+Or add it to `~/.ploston/.env` after the fact and restart the runner:
+
+```bash
+echo "GITHUB_TOKEN=ghp_..." >> ~/.ploston/.env
+ploston runner restart
+```
+
+### Runner fails to start
+
+```
+Error: Runner failed to connect to Control Plane at http://localhost:8082
+```
+
+Confirm the CP is healthy first:
+
+```bash
+ploston bootstrap status
+curl http://localhost:8082/health
+```
+
+If the CP is healthy but the runner still can't connect:
+
+```bash
+ploston runner logs          # check runner output
+ploston runner restart
+```
+
+---
+
+## Runner issues
+
+### Runner shows "disconnected"
+
+```bash
+ploston runner status
+# → Status: disconnected
+```
+
+The runner lost its WebSocket connection to the Control Plane. Restart it:
+
+```bash
+ploston runner restart
+```
+
+If it keeps disconnecting, check for CP errors:
+
+```bash
+ploston bootstrap logs --service ploston | grep ERROR
+```
+
+### Tools missing after runner restart
+
+Tool discovery happens on runner connect. After a restart, wait ~5 seconds, then check:
+
+```bash
 ploston tools list
-
-# Check if MCP server is configured
-ploston config show --section tools
-
-# Refresh tools from MCP servers
-ploston tools refresh
 ```
 
-### "Step timeout"
+If tools are still missing, the MCP server for that tool may have failed to start:
 
-**Problem:** Step execution exceeded timeout.
+```bash
+ploston runner logs --follow     # watch for MCP server startup errors
+```
 
-**Solution:**
+---
 
-Increase timeout in workflow:
+## Workflow issues
+
+### Validation fails
+
+```bash
+ploston validate my-workflow.yaml
+# Error: ...
+```
+
+Common errors:
+
+| Error | Fix |
+|-------|-----|
+| `Missing required field: name` | Add `name:` to the top of the YAML |
+| `Invalid step id` | Step IDs must be alphanumeric + hyphens, no spaces |
+| `Syntax error at line N` | YAML indentation issue — use spaces, not tabs |
+| `Unknown step type` | Step must have either `tool:` or `code:` but not both |
+| `Circular dependency` | A step's `depends_on` creates a loop — review the chain |
+
+### Tool not found at runtime
+
+```
+Error: TOOL_NOT_FOUND — tool 'my_tool' is not registered
+```
+
+```bash
+ploston tools list             # see what's registered
+ploston runner status          # confirm runner is connected
+```
+
+The tool name in your workflow must exactly match the registered name, including the `local__<server>__<tool>` prefix for runner tools.
+
+### Step timeout
+
+```
+Error: CODE_TIMEOUT — execution timeout after 30s
+```
+
+Increase the timeout on the slow step:
 
 ```yaml
 steps:
   - id: slow_step
-    tool: http_request
-    params:
-      url: "https://slow-api.example.com"
-    timeout: 120  # seconds
+    timeout: 120        # seconds
+    code: |
+      ...
 ```
 
-Or in config:
+Or globally in config:
 
 ```yaml
 execution:
   default_timeout: 300
 ```
 
-## MCP Server Issues
+### Code step: `result` is None
 
-### "MCP server connection failed"
+The sandbox captured `None` because `result` was never assigned. Every code step must set the `result` variable:
 
-**Problem:** Cannot connect to MCP server.
+```python
+# ✅ correct
+data = context.inputs["query"]
+result = {"processed": data.upper()}
 
-**Solution:**
-
-```bash
-# Check if command exists
-which npx  # for npm-based servers
-which python  # for Python servers
-
-# Test server manually
-npx -y @modelcontextprotocol/server-filesystem /tmp
-
-# Check environment variables
-echo $GITHUB_TOKEN  # for GitHub server
+# ❌ wrong — result is never set
+data = context.inputs["query"]
+output = data.upper()           # 'output' is ignored
 ```
 
-### "MCP server timeout"
+### Code step: import not allowed
 
-**Problem:** MCP server takes too long to respond.
+```
+SecurityError: Import 'requests' not allowed.
+```
 
-**Solution:**
-
-Check server logs and increase timeout:
+Blocked modules cannot be imported in code steps — use a `tool` step for network requests instead:
 
 ```yaml
-tools:
-  mcp_servers:
-    slow_server:
-      command: "python"
-      args: ["-m", "slow_server"]
-      timeout: 60  # seconds
+# ❌ Don't do this in a code step
+import requests
+response = requests.get(url)
+
+# ✅ Do this — use a tool step
+- id: fetch
+  tool: http_request
+  params:
+    url: "{{ inputs.url }}"
+    method: GET
 ```
 
-### "Tool schema mismatch"
+If you need a module that's blocked and you believe it should be allowed (e.g., `yaml`, `pydantic`), add it to `python_exec.allowed_imports` in your config.
 
-**Problem:** Tool parameters do not match expected schema.
+### Code step: variable not found in context
 
-**Solution:**
+```
+KeyError: 'some_step'
+```
+
+The step ID in `context.steps["some_step"]` doesn't exist or hasn't run yet. Check:
+- The referenced step ID matches exactly (case-sensitive)
+- The code step has `depends_on: [some_step]` so it runs after
+
+---
+
+## MCP / Claude Desktop issues
+
+### Workflow tool not visible in Claude Desktop
+
+After registering a new workflow:
+
+1. Confirm it's registered: `ploston workflows list`
+2. Restart Claude Desktop — MCP tool lists are loaded at startup
+3. If still missing, check the CP logs: `ploston bootstrap logs --service ploston`
+
+### Claude Desktop shows Ploston as disconnected
+
+Check that the Ploston entry in Claude Desktop's config points to the right address:
+
+```json
+{
+  "mcpServers": {
+    "ploston": {
+      "command": "ploston",
+      "args": ["serve"]
+    }
+  }
+}
+```
+
+Then restart Claude Desktop.
+
+---
+
+## Getting more information
+
+### Enable debug logging
+
+Add to `~/.ploston/.env`:
+
+```
+LOG_LEVEL=DEBUG
+```
+
+Then restart: `ploston bootstrap down && ploston bootstrap up`
+
+### View all logs in one stream
 
 ```bash
-# Check tool schema
-ploston tools show tool_name
-
-# Verify your parameters match the schema
+ploston bootstrap logs --follow
 ```
 
-## Runtime Issues
-
-### "Sandbox execution error"
-
-**Problem:** Python code in code step failed.
-
-**Solution:**
-
-Check for:
-- Syntax errors in code
-- Disallowed imports
-- Timeout exceeded
-
-```yaml
-# Enable debug logging
-logging:
-  level: DEBUG
-  components:
-    sandbox: true
-```
-
-### "Memory limit exceeded"
-
-**Problem:** Code step used too much memory.
-
-**Solution:**
-
-Increase memory limit in config:
-
-```yaml
-python_exec:
-  max_memory: 1073741824  # 1GB
-```
-
-Or optimize your code to use less memory.
-
-### "Import not allowed"
-
-**Problem:** Code step tried to import a disallowed module.
-
-**Solution:**
-
-Add the import to allowed list:
-
-```yaml
-python_exec:
-  allowed_imports:
-    - json
-    - re
-    - datetime
-    - math
-    - your_module  # Add your module
-```
-
-## Docker Issues
-
-### "Container will not start"
-
-**Problem:** Docker container fails to start.
-
-**Solution:**
+### Check service health directly
 
 ```bash
-# Check logs
-docker compose logs ploston
-
-# Verify config mount
-docker compose config
-
-# Rebuild image
-docker compose build --no-cache
-docker compose up -d
+curl -s http://localhost:8082/health | python3 -m json.tool
+curl -s http://localhost:8081/health | python3 -m json.tool
 ```
 
-### "Volume mount issues"
+### File a bug report
 
-**Problem:** Files not accessible in container.
+Include:
+- `ploston version` output
+- `ploston bootstrap status` output
+- Relevant log lines from `ploston bootstrap logs`
+- Workflow YAML (if the issue is workflow-related)
+- OS and Docker version
 
-**Solution:**
-
-```bash
-# Check volume mounts
-docker compose config | grep volumes
-
-# Verify file permissions
-ls -la workflows/
-chmod -R 755 workflows/
-```
-
-## Getting Help
-
-If you are still stuck:
-
-1. **Check logs:** Enable debug logging
-   ```yaml
-   logging:
-     level: DEBUG
-   ```
-
-2. **Search issues:** [GitHub Issues](https://github.com/ostanlabs/ploston/issues)
-
-3. **Ask for help:** [GitHub Discussions](https://github.com/ostanlabs/ploston/discussions)
-
-4. **Report a bug:** Include:
-   - Ploston version (`ploston version`)
-   - Python version (`python --version`)
-   - OS and version
-   - Full error message
-   - Minimal reproduction steps
+[Open an issue on GitHub →](https://github.com/ostanlabs/ploston/issues)

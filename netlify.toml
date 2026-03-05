@@ -2,7 +2,7 @@
 # Netlify Build Configuration for AEL Documentation
 # =============================================================================
 # Deploys MkDocs site to Netlify CDN
-# Site: https://ael-docs.netlify.app
+# Site: https://docs.ploston.ai
 # =============================================================================
 
 [build]

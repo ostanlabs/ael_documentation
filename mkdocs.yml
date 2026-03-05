@@ -7,7 +7,7 @@
 
 site_name: Ploston Documentation
 site_description: Ploston - Deterministic workflow execution for AI agents
-site_url: https://ploston.com
+site_url: https://docs.ploston.ai
 repo_url: https://github.com/ostanlabs/ploston
 repo_name: ostanlabs/ploston
 
@@ -94,7 +94,7 @@ nav:
     - Workflow Authoring: guides/workflow-authoring.md
     - Code Steps: guides/code-steps.md
     - Tool Integration: guides/tool-integration.md
-    - Docker: DOCKER.md
+    - Docker: guides/docker.md
     - Troubleshooting: guides/troubleshooting.md
   - Reference:
     - CLI Reference: reference/cli-reference.md

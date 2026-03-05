@@ -170,8 +170,53 @@ steps:
 4. **Limit extracted data** - Do not return entire pages
 5. **Handle encoding** - Web content may have various encodings
 
+## Calling from Claude Desktop
+
+### Without Ploston: what the agent has to do
+
+If the agent tried to orchestrate this itself — scraping a site and taking action on every result — it would need to issue dozens or hundreds of tool calls, passing every result back through the LLM. The context window fills up, tokens explode, and the task fails:
+
+![Without Ploston: agent issues 150+ Firecrawl calls, LLM hits context limit](../assets/images/firecrawl_flow.svg)
+
+### With Ploston: one call does it all
+
+Once the workflow is registered with the Control Plane, Claude can call it as a single MCP tool:
+
+![With Ploston: single workflow call, deterministic execution, 94% token savings](../assets/images/ploston_flow.svg)
+
+1. Copy `web-scrape.yaml` to your workflows directory and verify it's registered:
+
+```bash
+cp web-scrape.yaml ~/my-workflows/
+ploston workflows list
+# web-scrape   ✓
+```
+
+2. Restart Claude Desktop (tool lists are loaded at startup).
+
+3. Ask Claude:
+
+> "Use the web-scrape workflow to fetch https://example.com and extract the title"
+
+Claude calls `w_web-scrape` — one MCP invocation. Ploston runs fetch → extract → format deterministically and returns the result. No intermediate LLM reasoning, no token explosion.
+
+```
+Claude Desktop
+    │
+    │  tools/call  w_web-scrape
+    │  { "url": "https://example.com", "selector": "title" }
+    ▼
+Ploston
+    ├── fetch    http_request  (or firecrawl_search)  ✓
+    ├── extract  code step                             ✓
+    └── format   code step                             ✓
+    ▼
+{ "url": "...", "selector": "title", "extracted": "Example Domain" }
+```
+
 ## Related
 
+- [First Workflow Tutorial](../getting-started/first-workflow.md)
 - [Data Processing Example](data-processing.md)
 - [API Integration Example](api-integration.md)
 - [Workflow Authoring Guide](../guides/workflow-authoring.md)

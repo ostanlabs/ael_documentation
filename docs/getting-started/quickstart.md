@@ -1,126 +1,145 @@
 # Quickstart
 
-Get Ploston running in 5 minutes.
+Get Ploston running and call your first workflow in under 10 minutes.
+
+If you haven't installed Ploston yet, start with the [Installation guide](installation.md).
+
+---
 
 ## Prerequisites
 
-- Python 3.12 or higher
-- Terminal access
+- `ploston bootstrap` completed (Control Plane running)
+- `ploston init --import` completed (local runner started, tools imported)
+- Claude Desktop restarted
 
-## Step 1: Install Ploston CLI
-
-```bash
-pip install ploston-cli
-```
-
-## Step 2: Create a Project Directory
+Verify everything is up:
 
 ```bash
-mkdir my-ploston-project
-cd my-ploston-project
+ploston runner status
+ploston tools list
 ```
 
-Create `ael-config.yaml`:
+---
 
-```yaml
-workflows:
-  directory: "./workflows"
+## Step 1: Create a workflow file
 
-logging:
-  level: INFO
-```
-
-## Step 4: Create Your First Workflow
-
-Create the workflows directory and `workflows/hello.yaml`:
-
-```bash
-mkdir workflows
-```
+Create a file called `hello.yaml` anywhere on your machine:
 
 ```yaml
 name: hello
-version: "1.0"
-description: A simple hello world workflow
+version: "1.0.0"
+description: "A simple greeting workflow"
 
 inputs:
-  name:
+  - name: name
     type: string
     default: "World"
 
 steps:
   - id: greet
     code: |
-      name = "{{ inputs.name }}"
-      result = f"Hello, {name}!"
+      name = context.inputs['name']
+      return {"message": f"Hello, {name}! This ran deterministically inside Ploston."}
 
-output: "{{ steps.greet.output }}"
+outputs:
+  result:
+    from: steps.greet.output
 ```
 
-## Step 5: Validate the Workflow
+---
+
+## Step 2: Validate it
 
 ```bash
-ploston validate workflows/hello.yaml
+ploston validate hello.yaml
 ```
 
 Expected output:
+
 ```
 ✓ Workflow 'hello' is valid
+  Steps: 1
+  Inputs: name (string, default: "World")
+  Outputs: result
 ```
 
-## Step 6: Run the Workflow
+---
+
+## Step 3: Run it from the CLI
 
 ```bash
-ploston run workflows/hello.yaml
+ploston run hello.yaml
 ```
 
 Expected output:
+
 ```
-Hello, World!
+✓ Executed: hello
+Result: {"message": "Hello, World! This ran deterministically inside Ploston."}
+Duration: 42ms
+Execution ID: exec-a1b2c3d4
 ```
 
-Run with custom input:
+Run with a custom input:
 
 ```bash
-ploston run workflows/hello.yaml -i name=Alice
+ploston run hello.yaml -i name=Alice
 ```
 
-Expected output:
-```
-Hello, Alice!
-```
+---
 
-## Step 7: Start as MCP Server (Optional)
+## Step 4: Register it with the Control Plane
 
-Start Ploston as an MCP server for AI agent integration:
+To make the workflow available as an MCP tool that Claude can call, copy it into your workflows directory and register it:
 
 ```bash
-# Start with stdio transport (for AI agent integration)
-ploston serve
-
-# Or start with HTTP transport (for REST access)
-ploston serve --transport http --port 8080
+# Copy to wherever your workflows dir is configured
+cp hello.yaml ~/my-workflows/hello.yaml
 ```
 
-The workflow is now available as an MCP tool named `workflow:hello`.
+Then check it's registered:
 
-## What's Next?
+```bash
+ploston workflows list
+```
 
-You've successfully:
+You should see `hello` in the list. Claude Desktop can now call it as `w_hello`.
 
-- ✅ Created a Ploston project
-- ✅ Written a workflow
-- ✅ Validated and executed it
-- ✅ Started Ploston as an MCP server
+---
 
-### Continue Learning
+## Step 5: Call it from Claude Desktop
 
-- [First Workflow Tutorial](first-workflow.md) - Build a more complex workflow
-- [Workflow Authoring Guide](../guides/workflow-authoring.md) - Deep dive into workflows
-- [CLI Reference](../reference/cli-reference.md) - All available commands
+Open Claude Desktop and try:
 
-### Try More Examples
+> "Call the hello workflow with my name"
 
-- [Web Scraping Example](../examples/web-scraping.md)
-- [Data Processing Example](../examples/data-processing.md)
-- [API Integration Example](../examples/api-integration.md)
+Claude will invoke `w_hello` — a single MCP tool call. Ploston executes it deterministically and returns the result. No orchestration loops, no intermediate tokens.
+
+---
+
+## What just happened
+
+```
+Claude Desktop
+    │
+    │  1 MCP call: w_hello(name="Alice")
+    ▼
+Ploston Control Plane
+    │
+    │  Executes: step greet (sandboxed Python)
+    │  Duration: 42ms
+    │  Trace: exec-a1b2c3d4
+    ▼
+Result returned to Claude Desktop
+```
+
+The LLM made one decision ("call hello workflow"), Ploston handled the execution. That's the pattern — at any scale.
+
+---
+
+## Next steps
+
+- **[First Workflow Tutorial](first-workflow.md)** — Build a real multi-step workflow with tool calls
+- **[Workflow Authoring Guide](../guides/workflow-authoring.md)** — Complete YAML reference
+- **[CLI Reference](../reference/cli-reference.md)** — All CLI commands
+- **[Examples](../examples/web-scraping.md)** — Ready-to-use workflows

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" font-family="'Inter', 'Segoe UI', system-ui, sans-serif">
+  <defs>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#00000020"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 3.5 L 0 7 z" fill="context-stroke"/>
+    </marker>
+    <style>
+      .node-box{fill:#fff;stroke:#e2e8f0;stroke-width:1.5}
+      .node-label{font-size:15px;font-weight:600;fill:#1e293b;text-anchor:middle}
+      .node-icon{font-size:22px;text-anchor:middle}
+      .node-sublabel{font-size:10px;fill:#94a3b8;text-anchor:middle;font-weight:500;letter-spacing:.5px}
+      .edge-base{stroke:#e2e8f0;stroke-width:2;fill:none;filter:none}
+      .edge-hi{stroke:#e2e8f0;stroke-width:2;fill:none;filter:none}
+      .edge-label{font-size:11px;fill:#94a3b8;font-weight:500;opacity:0}
+      .step-badge{opacity:0}
+      .step-num{font-size:9px;fill:#fff;font-weight:700;text-anchor:middle}
+      .label-1{animation:lp1 14s infinite} .badge-1{animation:bp1 14s infinite}
+      .label-2{animation:lp2 14s infinite} .badge-2{animation:bp2 14s infinite}
+      .label-3{animation:lp3 14s infinite} .badge-3{animation:bp3 14s infinite}
+      .label-4{animation:lp4 14s infinite} .badge-4{animation:bp4 14s infinite}
+      .label-5{animation:lp5 14s infinite} .badge-5{animation:bp5 14s infinite}
+      .label-6{animation:lp6 14s infinite} .badge-6{animation:bp6 14s infinite}
+      .label-7{animation:lp7 14s infinite} .badge-7{animation:bp7 14s infinite}
+      .label-8{animation:lp8 14s infinite} .badge-8{animation:bp8 14s infinite}
+      .hi-user-agent{animation:hi_user_agent 14s infinite}
+      .hi-agent-user{animation:hi_agent_user 14s infinite}
+      .hi-agent-llm{animation:hi_agent_llm 14s infinite}
+      .hi-llm-agent{animation:hi_llm_agent 14s infinite}
+      .hi-agent-tools{animation:hi_agent_tools 14s infinite}
+      .hi-tools-agent{animation:hi_tools_agent 14s infinite}
+      @keyframes hi_user_agent{0%,1%{stroke:#6366f1;stroke-width:3;filter:url(#glow)}8%{stroke:#6366f1;stroke-width:3;filter:url(#glow)}10%,100%{stroke:#e2e8f0;stroke-width:2;filter:none}}
+      @keyframes hi_agent_user{0%,75%{stroke:#e2e8f0;stroke-width:2;filter:none}75.5%{stroke:#6366f1;stroke-width:3;filter:url(#glow)}83%{stroke:#6366f1;stroke-width:3;filter:url(#glow)}85%,100%{stroke:#e2e8f0;stroke-width:2;filter:none}}
+      @keyframes hi_agent_llm{0%,10.7%{stroke:#e2e8f0;stroke-width:2;filter:none}11%{stroke:#6366f1;stroke-width:3;filter:url(#glow)}19%{stroke:#6366f1;stroke-width:3;filter:url(#glow)}21%,53.6%{stroke:#e2e8f0;stroke-width:2;filter:none}54%{stroke:#f59e0b;stroke-width:3;filter:url(#glow)}62%{stroke:#f59e0b;stroke-width:3;filter:url(#glow)}64%,100%{stroke:#e2e8f0;stroke-width:2;filter:none}}
+      @keyframes hi_llm_agent{0%,21.4%{stroke:#e2e8f0;stroke-width:2;filter:none}22%{stroke:#6366f1;stroke-width:3;filter:url(#glow)}30%{stroke:#6366f1;stroke-width:3;filter:url(#glow)}32%,64.3%{stroke:#e2e8f0;stroke-width:2;filter:none}65%{stroke:#f59e0b;stroke-width:3;filter:url(#glow)}73%{stroke:#f59e0b;stroke-width:3;filter:url(#glow)}75%,100%{stroke:#e2e8f0;stroke-width:2;filter:none}}
+      @keyframes hi_agent_tools{0%,32.1%{stroke:#e2e8f0;stroke-width:2;filter:none}33%{stroke:#10b981;stroke-width:3;filter:url(#glow)}41%{stroke:#10b981;stroke-width:3;filter:url(#glow)}43%,100%{stroke:#e2e8f0;stroke-width:2;filter:none}}
+      @keyframes hi_tools_agent{0%,42.8%{stroke:#e2e8f0;stroke-width:2;filter:none}43.5%{stroke:#10b981;stroke-width:3;filter:url(#glow)}51%{stroke:#10b981;stroke-width:3;filter:url(#glow)}53%,100%{stroke:#e2e8f0;stroke-width:2;filter:none}}
+      @keyframes lp1{0%,1%{opacity:1;fill:#6366f1}8%{opacity:1;fill:#6366f1}10%{opacity:0;fill:#94a3b8}100%{opacity:0;fill:#94a3b8}}
+      @keyframes lp2{0%,10.7%{opacity:0;fill:#94a3b8}11%{opacity:1;fill:#6366f1}19%{opacity:1;fill:#6366f1}21%{opacity:0;fill:#94a3b8}100%{opacity:0;fill:#94a3b8}}
+      @keyframes lp3{0%,21.4%{opacity:0;fill:#94a3b8}22%{opacity:1;fill:#6366f1}30%{opacity:1;fill:#6366f1}32%{opacity:0;fill:#94a3b8}100%{opacity:0;fill:#94a3b8}}
+      @keyframes lp4{0%,32.1%{opacity:0;fill:#94a3b8}33%{opacity:1;fill:#10b981}41%{opacity:1;fill:#10b981}43%{opacity:0;fill:#94a3b8}100%{opacity:0;fill:#94a3b8}}
+      @keyframes lp5{0%,42.8%{opacity:0;fill:#94a3b8}43.5%{opacity:1;fill:#10b981}51%{opacity:1;fill:#10b981}53%{opacity:0;fill:#94a3b8}100%{opacity:0;fill:#94a3b8}}
+      @keyframes lp6{0%,53.6%{opacity:0;fill:#94a3b8}54%{opacity:1;fill:#f59e0b}62%{opacity:1;fill:#f59e0b}64%{opacity:0;fill:#94a3b8}100%{opacity:0;fill:#94a3b8}}
+      @keyframes lp7{0%,64.3%{opacity:0;fill:#94a3b8}65%{opacity:1;fill:#f59e0b}73%{opacity:1;fill:#f59e0b}75%{opacity:0;fill:#94a3b8}100%{opacity:0;fill:#94a3b8}}
+      @keyframes lp8{0%,75%{opacity:0;fill:#94a3b8}75.5%{opacity:1;fill:#6366f1}83%{opacity:1;fill:#6366f1}85%{opacity:0;fill:#94a3b8}100%{opacity:0;fill:#94a3b8}}
+      @keyframes bp1{0%,1%{opacity:1}8%{opacity:1}10%{opacity:0}100%{opacity:0}}
+      @keyframes bp2{0%,10.7%{opacity:0}11%{opacity:1}19%{opacity:1}21%{opacity:0}100%{opacity:0}}
+      @keyframes bp3{0%,21.4%{opacity:0}22%{opacity:1}30%{opacity:1}32%{opacity:0}100%{opacity:0}}
+      @keyframes bp4{0%,32.1%{opacity:0}33%{opacity:1}41%{opacity:1}43%{opacity:0}100%{opacity:0}}
+      @keyframes bp5{0%,42.8%{opacity:0}43.5%{opacity:1}51%{opacity:1}53%{opacity:0}100%{opacity:0}}
+      @keyframes bp6{0%,53.6%{opacity:0}54%{opacity:1}62%{opacity:1}64%{opacity:0}100%{opacity:0}}
+      @keyframes bp7{0%,64.3%{opacity:0}65%{opacity:1}73%{opacity:1}75%{opacity:0}100%{opacity:0}}
+      @keyframes bp8{0%,75%{opacity:0}75.5%{opacity:1}83%{opacity:1}85%{opacity:0}100%{opacity:0}}
+    </style>
+  </defs>
+  <rect width="960" height="600" fill="#f8fafc"/>
+  <text x="480" y="38" text-anchor="middle" font-size="18" font-weight="700" fill="#1e293b">Agent Execution Flow</text>
+  <text x="480" y="56" text-anchor="middle" font-size="11" fill="#94a3b8" font-weight="500">How agents orchestrate LLM planning and tool execution</text>
+  <line x1="245" y1="282" x2="395" y2="282" class="edge-base" marker-end="url(#arrow)"/>
+  <line x1="395" y1="308" x2="245" y2="308" class="edge-base" marker-end="url(#arrow)"/>
+  <line x1="545" y1="260" x2="725" y2="168" class="edge-base" marker-end="url(#arrow)"/>
+  <line x1="725" y1="185" x2="545" y2="277" class="edge-base" marker-end="url(#arrow)"/>
+  <line x1="545" y1="315" x2="725" y2="432" class="edge-base" marker-end="url(#arrow)"/>
+  <line x1="725" y1="448" x2="545" y2="331" class="edge-base" marker-end="url(#arrow)"/>
+  <line x1="245" y1="282" x2="395" y2="282" class="edge-hi hi-user-agent" marker-end="url(#arrow)"/>
+  <line x1="395" y1="308" x2="245" y2="308" class="edge-hi hi-agent-user" marker-end="url(#arrow)"/>
+  <line x1="545" y1="260" x2="725" y2="168" class="edge-hi hi-agent-llm" marker-end="url(#arrow)"/>
+  <line x1="725" y1="185" x2="545" y2="277" class="edge-hi hi-llm-agent" marker-end="url(#arrow)"/>
+  <line x1="545" y1="315" x2="725" y2="432" class="edge-hi hi-agent-tools" marker-end="url(#arrow)"/>
+  <line x1="725" y1="448" x2="545" y2="331" class="edge-hi hi-tools-agent" marker-end="url(#arrow)"/>
+  <g transform="translate(320,266)">
+    <g class="step-badge badge-1" transform="translate(-65,-20)"><circle cx="0" cy="0" r="8" fill="#6366f1"/><text x="0" y="3" class="step-num">1</text></g>
+    <text x="0" y="-20" class="edge-label label-1" text-anchor="middle">user sends request</text>
+  </g>
+  <g transform="translate(605,186)">
+    <g class="step-badge badge-2" transform="translate(-14,-3)"><circle cx="-50" cy="0" r="8" fill="#6366f1"/><text x="-50" y="3" class="step-num">2</text></g>
+    <text x="0" y="0" class="edge-label label-2" text-anchor="start"><tspan x="-50" dy="0">prompt +</tspan><tspan x="-50" dy="14">available tools</tspan></text>
+  </g>
+  <g transform="translate(755,245)">
+    <g class="step-badge badge-3" transform="translate(14,-3)"><circle cx="-30" cy="0" r="8" fill="#6366f1"/><text x="-30" y="3" class="step-num">3</text></g>
+    <text x="0" y="0" class="edge-label label-3" text-anchor="end"><tspan x="-30" dy="0">response +</tspan><tspan x="-30" dy="14">tool calls</tspan></text>
+  </g>
+  <g transform="translate(615,355)">
+    <g class="step-badge badge-4" transform="translate(-14,-3)"><circle cx="25" cy="0" r="8" fill="#10b981"/><text x="25" y="3" class="step-num">4</text></g>
+    <text x="25" y="0" class="edge-label label-4" text-anchor="start">tool invocation</text>
+  </g>
+  <g transform="translate(620,400)">
+    <g class="step-badge badge-5" transform="translate(-64,-3)"><circle cx="0" cy="0" r="8" fill="#10b981"/><text x="0" y="3" class="step-num">5</text></g>
+    <text x="0" y="0" class="edge-label label-5" text-anchor="end">tool result</text>
+  </g>
+  <g transform="translate(605,220)">
+    <g class="step-badge badge-6" transform="translate(-14,-3)"><circle cx="-80" cy="-22" r="8" fill="#f59e0b"/><text x="-80" y="-19" class="step-num">6</text></g>
+    <text x="-80" y="-22" class="edge-label label-6" text-anchor="start">passes tool result</text>
+  </g>
+  <g transform="translate(755,262)">
+    <g class="step-badge badge-7" transform="translate(14,-3)"><circle cx="0" cy="0" r="8" fill="#f59e0b"/><text x="0" y="3" class="step-num">7</text></g>
+    <text x="0" y="0" class="edge-label label-7" text-anchor="end">synthesizes response</text>
+  </g>
+  <g transform="translate(320,320)">
+    <g class="step-badge badge-8" transform="translate(-48,-3)"><circle cx="0" cy="0" r="8" fill="#6366f1"/><text x="0" y="3" class="step-num">8</text></g>
+    <text x="0" y="0" class="edge-label label-8" text-anchor="middle">final response</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="130" y="260" width="115" height="70" class="node-box" rx="12"/>
+    <text x="187" y="287" class="node-icon">&#x1F464;</text>
+    <text x="187" y="309" class="node-label">User</text>
+    <text x="187" y="322" class="node-sublabel">REQUEST</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="395" y="256" width="155" height="88" class="node-box" rx="14" style="stroke:#6366f1;stroke-width:2"/>
+    <text x="472" y="285" class="node-icon">&#x1F916;</text>
+    <text x="472" y="309" class="node-label" font-size="16">Agent</text>
+    <text x="472" y="325" class="node-sublabel" style="fill:#6366f1">ORCHESTRATOR</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="725" y="130" width="130" height="70" class="node-box" rx="12"/>
+    <text x="790" y="157" class="node-icon">&#x1F9E0;</text>
+    <text x="790" y="180" class="node-label">LLM</text>
+    <text x="790" y="193" class="node-sublabel">PLANNING</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="725" y="420" width="130" height="70" class="node-box" rx="12"/>
+    <text x="790" y="447" class="node-icon">&#x1F527;</text>
+    <text x="790" y="469" class="node-label">Tools</text>
+    <text x="790" y="482" class="node-sublabel">EXECUTION</text>
+  </g>
+  <g transform="translate(110,535)">
+    <text x="0" y="0" font-size="10" fill="#94a3b8" font-weight="600" letter-spacing="1">SEQUENCE</text>
+    <g transform="translate(0,18)">
+      <circle cx="8" cy="0" r="8" fill="#6366f1"/><text x="8" y="3.5" class="step-num">1</text><text x="22" y="4" font-size="10" fill="#64748b">Request</text>
+      <circle cx="100" cy="0" r="8" fill="#6366f1"/><text x="100" y="3.5" class="step-num">2</text><text x="114" y="4" font-size="10" fill="#64748b">Prompt</text>
+      <circle cx="175" cy="0" r="8" fill="#6366f1"/><text x="175" y="3.5" class="step-num">3</text><text x="189" y="4" font-size="10" fill="#64748b">Tool calls</text>
+      <circle cx="270" cy="0" r="8" fill="#10b981"/><text x="270" y="3.5" class="step-num">4</text><text x="284" y="4" font-size="10" fill="#64748b">Execute</text>
+      <circle cx="350" cy="0" r="8" fill="#10b981"/><text x="350" y="3.5" class="step-num">5</text><text x="364" y="4" font-size="10" fill="#64748b">Result</text>
+      <circle cx="418" cy="0" r="8" fill="#f59e0b"/><text x="418" y="3.5" class="step-num">6</text><text x="432" y="4" font-size="10" fill="#64748b">Relay</text>
+      <circle cx="490" cy="0" r="8" fill="#f59e0b"/><text x="490" y="3.5" class="step-num">7</text><text x="504" y="4" font-size="10" fill="#64748b">Synthesize</text>
+      <circle cx="590" cy="0" r="8" fill="#6366f1"/><text x="590" y="3.5" class="step-num">8</text><text x="604" y="4" font-size="10" fill="#64748b">Respond</text>
+    </g>
+  </g>
+  <text x="940" y="590" text-anchor="end" font-size="10" fill="#cbd5e1" font-weight="500">ploston.ai</text>
+</svg>

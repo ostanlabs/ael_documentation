@@ -1,137 +1,137 @@
 # Roadmap
 
-Ploston is actively developed. This page shows what's available now and what's coming.
+Ploston is actively developed. This page reflects the current state of the project.
 
 ---
 
-## Current: OSS Core (Available Now)
+## OSS Core — Available Now ✅
 
-The open-source release includes everything you need to run deterministic workflows:
+Everything in this section is shipped and working.
 
-### Data Plane ✅
+### Setup & Deployment
 | Feature | Description |
 |---------|-------------|
-| **MCP Frontend** | Native MCP protocol support |
-| **Workflow Engine** | Sequential step execution with error handling |
-| **Tool Invoker** | Call any MCP tool from workflows |
-| **Python Sandbox** | Secure code execution with 7-layer security |
-| **Template Engine** | Jinja2-based parameter templating |
+| **`ploston bootstrap`** | One-command Docker Compose deployment — pulls images, starts CP, Redis, native-tools |
+| **`ploston init --import`** | Scans Claude Desktop / Cursor configs, interactive import, starts local runner |
+| **Local Runner** | Daemon that connects your local MCP servers to the Control Plane over WebSocket |
+| **Docker Compose** | Production-ready compose file with health checks and restart policies |
+| **Kubernetes** | Helm charts + manifests for K8s deployment (`ploston bootstrap --target k8s`) |
 
-### Control Plane ✅
+### Execution Engine
 | Feature | Description |
 |---------|-------------|
-| **Tool Registry** | Discover and manage MCP tools |
-| **Workflow Registry** | Load and validate workflow definitions |
-| **Config Loader** | YAML-based configuration |
-| **MCP Client Manager** | Connect to multiple MCP servers |
+| **Workflow Engine** | Sequential step execution with full dependency resolution |
+| **MCP Frontend** | MCP server over stdio and HTTP+SSE — Claude Desktop, Cursor, any MCP client |
+| **Tool Invoker** | Calls any MCP tool from a workflow step |
+| **Python Sandbox** | Secure sandboxed code execution with 7-layer security model |
+| **Jinja2 Templates** | Parameter templating across tool steps, conditions, and outputs |
+| **Retry Logic** | Per-step configurable retry with exponential backoff |
+| **Error Handling** | `on_error: fail / skip / retry` per step |
 
-### Developer Experience ✅
+### Control Plane
 | Feature | Description |
 |---------|-------------|
-| **CLI Interface** | `ploston run`, `ploston validate`, `ploston list` commands |
-| **Self-Configuration Tools** | Manage Ploston via MCP tools |
-| **Structured Logging** | JSON-formatted execution logs |
-| **Error Registry** | Consistent error codes and messages |
+| **Tool Registry** | Discovers and manages all MCP tools from connected runners |
+| **Workflow Registry** | Loads, validates, and hot-reloads workflow YAML files |
+| **REST API** | Full HTTP API for workflows, tools, executions, runners, config |
+| **HTTP Transport** | MCP over HTTP+SSE with TLS support |
+| **Config Tools** | MCP-native configuration management (`config_get`, `config_set`, `config_done`) |
+| **Runner Management** | Multi-runner support with WebSocket connections and persistent registration |
+
+### Observability
+| Feature | Description |
+|---------|-------------|
+| **Prometheus Metrics** | Execution metrics, tool call counts, token savings estimates |
+| **OpenTelemetry Traces** | Distributed tracing for workflow and step execution |
+| **Structured Logging** | JSON-formatted logs via structlog |
+| **Telemetry Store** | SQLite-backed execution history with configurable retention |
+| **Grafana Dashboards** | Pre-built dashboards for execution metrics and system health |
+
+### Developer Experience
+| Feature | Description |
+|---------|-------------|
+| **CLI** | `ploston run`, `ploston validate`, `ploston workflows list/show`, `ploston tools list` |
+| **Plugin Framework** | `PlostonPlugin` base class with pre/post execution hooks |
+| **Plugin Registry** | Auto-discovery and loading of plugins |
+| **Error Registry** | Consistent error codes across all failure modes |
+| **Native Tools** | Built-in MCP server: filesystem, HTTP, data transforms, Kafka, Firecrawl, ML |
+
+### Security
+| Feature | Description |
+|---------|-------------|
+| **API Key Auth** | Token-based authentication for the REST API and MCP frontend |
+| **7-Layer Sandbox** | Import restrictions, builtin restrictions, tool whitelist, rate limiting, parameter validation, timeout, recursion prevention |
 
 ---
 
-## Phase 2: Plugin Framework (In Progress)
-
-**Status:** 🔜 Current focus
-**Timeline:** Q1 2026 (January–March)
-
-| Deliverable | Description |
-|-------------|-------------|
-| **Plugin System** | `PlostonPlugin` base class for extensibility |
-| **Plugin Registry** | Discover and load plugins |
-| **Hook System** | Pre/post execution hooks |
-| **OSS Repo Public** | Apache 2.0 license, public GitHub |
-
----
-
-## Phase 3: OSS Hardening (Coming Soon)
-
-**Timeline:** Q1 2026
-
-| Feature | Description |
-|---------|-------------|
-| **REST API** | HTTP endpoints for workflow/tool management |
-| **HTTP Transport** | MCP over HTTP/SSE with TLS |
-| **Telemetry Store** | SQLite persistence for execution history |
-| **Prometheus Metrics** | Execution metrics export |
-| **Authentication** | API key and token-based auth |
-
----
-
-## Phase 4: Enterprise Foundation (Planned)
-
-**Timeline:** Q2 2026
+## Phase 4: Enterprise Foundation — Planned Q2 2026
 
 ### Security & Governance
 | Feature | Description |
 |---------|-------------|
-| **RBAC/ABAC** | Role and attribute-based access control |
-| **Policy Engine** | Cedar/Rego-based policy enforcement |
-| **SSO Integration** | SAML, OIDC identity providers |
-| **Audit Logging** | Complete execution audit trail |
+| **RBAC / ABAC** | Role and attribute-based access control for workflows and tools |
+| **Policy Engine** | Cedar/Rego-based policy enforcement at the execution layer |
+| **SSO Integration** | SAML and OIDC identity provider support |
+| **Immutable Audit Logs** | Tamper-proof, compliance-ready execution audit trail |
 
 ### Advanced Orchestration
 | Feature | Description |
 |---------|-------------|
-| **Parallel Execution** | Run steps concurrently |
-| **Compensation Steps** | Rollback on failure |
-| **Human Approval** | Pause for human decision |
-| **Async Execution** | Fire-and-forget workflows |
-| **Execution Cancellation** | Cancel in-flight workflows |
+| **Parallel Execution** | Run independent steps concurrently |
+| **Compensation Steps** | Automatic rollback on workflow failure |
+| **Human Approval** | Pause workflow execution for human decision |
+| **Async Execution** | Fire-and-forget workflows with webhook callbacks |
+| **Execution Cancellation** | Cancel in-flight workflow executions |
 
 ### Operations
 | Feature | Description |
 |---------|-------------|
-| **Multi-Tenancy** | Isolated execution environments |
-| **Multi-Node Runtime** | Distributed execution |
-| **Kubernetes Operator** | Native K8s deployment |
+| **Multi-Tenancy** | Fully isolated execution environments per tenant |
+| **Multi-Node Runtime** | Distributed execution across multiple runner nodes |
+| **Kubernetes Operator** | Native K8s CRD-based workflow management |
 
 ---
 
-## Phase 5: Enterprise Intelligence (Future)
-
-**Timeline:** H2 2026
+## Phase 5: Enterprise Intelligence — H2 2026
 
 ### Learning & Optimization
 | Feature | Description |
 |---------|-------------|
-| **Pattern Mining** | Detect common tool sequences |
-| **Workflow Synthesis** | Auto-generate workflows from patterns |
-| **Tool Selection Engine** | Recommend tools for tasks |
-| **Cost Accounting** | Token and resource tracking |
+| **Pattern Mining** | Detect repeated tool sequences from agent session telemetry |
+| **Workflow Synthesis** | Auto-generate YAML workflows from observed patterns |
+| **Token Cost Accounting** | Per-workflow token savings tracking and ROI reporting |
+| **Tool Selection Engine** | Suggest the right tool or workflow for a given task |
 
 ### Enterprise Console
 | Feature | Description |
 |---------|-------------|
-| **Visual Workflow Builder** | Drag-and-drop workflow creation |
-| **Workflow Library** | Browse and search workflows |
-| **Tool Catalog** | Explore available tools |
-| **Execution Explorer** | Debug and analyze runs |
-| **Pattern Review** | Review and approve synthesized workflows |
+| **Visual Workflow Builder** | Drag-and-drop YAML workflow creation |
+| **Workflow Library** | Browse, search, and clone workflows across your organization |
+| **Tool Catalog** | Explore all registered tools with schemas and usage stats |
+| **Execution Explorer** | Inspect, replay, and debug any execution |
+| **Pattern Review** | Review LLM-synthesized workflows before publishing |
 
 ---
 
-## Feature Summary
+## OSS vs Enterprise at a glance
 
-| Category | OSS | Enterprise |
-|----------|-----|------------|
-| **Core Runtime** | ✅ | ✅ |
-| **MCP Integration** | ✅ | ✅ |
-| **Python Sandbox** | ✅ | ✅ |
-| **CLI** | ✅ | ✅ |
-| **REST API** | Phase 3 | ✅ |
-| **RBAC/ABAC** | — | Phase 4 |
-| **Policy Engine** | — | Phase 4 |
-| **Parallel Execution** | — | Phase 4 |
-| **Human Approval** | — | Phase 4 |
-| **Pattern Mining** | — | Phase 5 |
-| **Workflow Synthesis** | — | Phase 5 |
-| **Visual Builder** | — | Phase 5 |
+| Capability | OSS | Enterprise |
+|------------|-----|------------|
+| Workflow Engine | ✅ | ✅ |
+| MCP Integration | ✅ | ✅ |
+| Python Sandbox | ✅ | ✅ |
+| CLI + REST API | ✅ | ✅ |
+| Docker + K8s deploy | ✅ | ✅ |
+| Prometheus + Grafana | ✅ | ✅ |
+| Plugin Framework | ✅ | ✅ |
+| RBAC / ABAC | — | Phase 4 |
+| Policy Engine | — | Phase 4 |
+| Parallel Execution | — | Phase 4 |
+| Human Approval | — | Phase 4 |
+| Multi-Tenancy | — | Phase 4 |
+| Pattern Mining | — | Phase 5 |
+| Workflow Synthesis | — | Phase 5 |
+| Visual Builder | — | Phase 5 |
 
 ---
 
@@ -139,33 +139,22 @@ The open-source release includes everything you need to run deterministic workfl
 
 We're looking for design partners to shape Enterprise features.
 
-**Ideal partners:**
-- Running AI agents in production
-- Need deterministic execution guarantees
-- Have compliance/governance requirements
-- Want to reduce agent token costs
+**Ideal partners:** teams running AI agents in production who need deterministic execution guarantees, compliance/governance requirements, or want to reduce agent token costs at scale.
 
-**What you get:**
-- Early access to Enterprise features
-- Direct input on roadmap priorities
-- Dedicated support channel
-- Discounted pricing at GA
+**What you get:** early access to Enterprise features, direct input on roadmap priorities, dedicated support channel, discounted pricing at GA.
 
-**Interested?** [Contact us](mailto:hello@ostanlabs.com) or open a GitHub discussion.
+[Contact us](mailto:hello@ostanlabs.com) or open a GitHub discussion.
 
 ---
 
 ## Release Philosophy
 
-1. **OSS-first** — Core execution is always open source
-2. **Enterprise adds, doesn't subtract** — OSS features stay OSS
-3. **Stability over speed** — We ship when it's ready
-4. **Feedback-driven** — Roadmap adapts to user needs
-
----
+- **OSS-first** — core execution is always open source
+- **Enterprise adds, never subtracts** — OSS features stay OSS
+- **Stability over speed** — ship when it's ready
+- **Feedback-driven** — roadmap adapts to what users actually need
 
 ## Stay Updated
 
-- **GitHub Releases** — Watch the repo for release notifications
-- **Discussions** — Join the conversation on GitHub Discussions
-- **Twitter** — Follow [@ostanlabs](https://twitter.com/ostanlabs) for updates
+- **GitHub Releases** — watch the repo for release notifications
+- **Discussions** — [github.com/ostanlabs/ploston/discussions](https://github.com/ostanlabs/ploston/discussions)

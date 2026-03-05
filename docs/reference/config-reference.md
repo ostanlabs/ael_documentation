@@ -2,111 +2,98 @@
 
 Complete reference for Ploston configuration options.
 
-## Configuration File Location
+---
 
-Ploston searches for configuration in this order (first found wins):
+## How configuration works
 
-1. **CLI flag:** `--config ./path/to/config.yaml`
-2. **Environment variable:** `AEL_CONFIG_PATH=/path/to/config.yaml`
-3. **Current directory:** `./ael-config.yaml`
-4. **User home:** `~/.ploston/config.yaml`
+Ploston's configuration is managed in one of two ways depending on how you set it up:
 
-## Configuration Modes
+**Via `ploston init --import` (recommended)** — Configuration is pushed to the Control Plane through the MCP config tools and stored in Redis. The compose file at `~/.ploston/docker-compose.yaml` and secrets at `~/.ploston/.env` are managed automatically. You don't edit YAML files by hand.
 
-### Running Mode
+**Via config file (advanced/self-hosted)** — If you're running the Control Plane manually (from source or a custom deployment), you can pass a YAML config file. The CP searches for it in this order:
 
-When Ploston finds a valid configuration file, it starts in **running mode** with full functionality.
+1. `--config <path>` CLI flag
+2. `AEL_CONFIG_PATH` environment variable
+3. `./ael-config.yaml` in the current directory
+4. `~/.ploston/config.yaml`
 
-### Configuration Mode
+---
 
-When no configuration file exists, Ploston starts in **configuration mode** with limited tools for initial setup:
+## Configuration modes
+
+The Control Plane operates in one of two modes:
+
+### Configuration mode
+
+Active when no valid config has been committed yet. Only the config MCP tools are available — no workflows, no tool execution. This is the state the CP starts in after `ploston bootstrap`, before `ploston init --import` completes.
 
 | Tool | Description |
 |------|-------------|
-| `config_get` | Read current staged configuration |
-| `config_set` | Stage configuration changes |
-| `config_validate` | Validate staged configuration |
-| `config_done` | Write config to disk and switch to running mode |
-| `config_location` | Get/set config file location |
+| `config_get` | Read the current staged configuration |
+| `config_set` | Stage a configuration change |
+| `config_validate` | Validate the staged configuration |
+| `config_done` | Commit config and switch to running mode |
+| `config_location` | Get or set the config file location |
 
-Force a specific mode:
+### Running mode
+
+Active after `ploston init --import` completes. All tools, workflows, and execution features are available. This is the normal operating state.
+
+Force a specific mode (useful for debugging):
 
 ```bash
-ploston serve --mode configuration  # Force config mode
-ploston serve --mode running        # Force running mode (fails if no config)
+ploston serve --mode configuration
+ploston serve --mode running   # fails if no valid config exists
 ```
 
-## Complete Configuration Schema
+---
+
+## Complete configuration schema
 
 ```yaml
-# ═══════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════
 # PLOSTON CONFIGURATION FILE
-# ═══════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════
 
-# Server settings
+# Server identity
 server:
-  name: "ploston"                    # Server name for MCP
-  version: "0.1.0"               # Server version
+  name: "ploston"
+  version: "0.1.0"
 
-# MCP server connections
+# MCP server connections (proxied through the local runner)
 mcp:
   servers:
-    # Example: Filesystem server
     filesystem:
       command: "npx"
-      args: ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+      args: ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"]
       env: {}
-    
-    # Example: Custom server
-    # my-server:
-    #   command: "python"
-    #   args: ["-m", "my_mcp_server"]
-    #   env:
-    #     API_KEY: "${MY_API_KEY}"
 
-# Tool configuration
-tools:
-  # Built-in tools to enable
-  builtins:
-    - python_exec
-  
-  # MCP servers to connect (references mcp.servers)
-  mcp_servers:
-    filesystem:
+    github:
       command: "npx"
-      args: ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+      args: ["-y", "@modelcontextprotocol/server-github"]
+      env:
+        GITHUB_TOKEN: "${GITHUB_TOKEN}"
 
 # Workflow settings
 workflows:
-  # Directory containing workflow YAML files
   directory: "./workflows"
-  
-  # Auto-reload on file changes
-  hot_reload: true
+  hot_reload: true          # auto-reload when YAML files change
 
 # Execution settings
 execution:
-  # Maximum concurrent workflow executions
-  max_concurrent: 10
-  
-  # Default timeout in seconds
-  default_timeout: 300
-  
-  # Retry configuration
+  max_concurrent: 10        # max parallel workflow executions
+  default_timeout: 300      # seconds
+
   retry:
     max_attempts: 3
     backoff_multiplier: 2.0
 
-# Python execution sandbox
+# Python sandbox settings
 python_exec:
-  # Timeout for code execution (seconds)
-  timeout: 30
-  
-  # Maximum memory (bytes)
-  max_memory: 536870912  # 512MB
-  
-  # Allowed imports
-  allowed_imports:
+  timeout: 30               # seconds per code step
+  max_memory: 536870912     # 512 MB
+
+  allowed_imports:          # extend the default whitelist
     - json
     - re
     - datetime
@@ -115,156 +102,130 @@ python_exec:
     - itertools
     - functools
 
-# Logging configuration
+# Logging
 logging:
-  # Log level: DEBUG, INFO, WARNING, ERROR
-  level: INFO
-  
-  # Log format: text or json
-  format: text
-  
-  # Component-specific logging
+  level: INFO               # DEBUG | INFO | WARNING | ERROR
+  format: text              # text | json
+
   components:
     workflow: true
     step: true
     tool: true
     sandbox: true
-  
-  # Output options
+
   options:
-    show_params: false
-    show_results: false
+    show_params: false       # log tool parameters
+    show_results: false      # log step outputs
     truncate_at: 1000
 
-# Security settings
+# Security
 security:
-  # Allowed hosts for HTTP requests
-  allowed_hosts: []
-  
-  # Blocked hosts
+  allowed_hosts: []         # whitelist for outbound HTTP (empty = allow all)
   blocked_hosts: []
 
-# Telemetry (optional)
+# Telemetry
 telemetry:
   enabled: false
   endpoint: ""
 ```
 
-## Configuration Sections
+---
+
+## Section reference
 
 ### `server`
 
-Server identification for MCP protocol.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `name` | string | `"ploston"` | Server name |
-| `version` | string | `"0.1.0"` | Server version |
+| Field | Default | Description |
+|-------|---------|-------------|
+| `name` | `"ploston"` | MCP server name reported to clients |
+| `version` | `"0.1.0"` | Server version |
 
 ### `mcp`
 
-MCP server connections.
+Defines MCP servers the runner will connect to. Each entry is a server name mapped to a launch command.
 
 ```yaml
 mcp:
   servers:
-    server-name:
-      command: "executable"
-      args: ["arg1", "arg2"]
+    my-server:
+      command: "python"        # executable
+      args: ["-m", "my_mcp"]  # arguments
       env:
-        VAR: "value"
+        API_KEY: "${MY_KEY}"  # environment variables
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `command` | string | Yes | Executable to run |
-| `args` | list | No | Command arguments |
-| `env` | object | No | Environment variables |
-
-### `tools`
-
-Tool configuration.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `builtins` | list | `["python_exec"]` | Built-in tools to enable |
-| `mcp_servers` | object | `{}` | MCP server definitions |
+| Field | Required | Description |
+|-------|----------|-------------|
+| `command` | Yes | Executable to run |
+| `args` | No | Command arguments |
+| `env` | No | Environment variables — use `${VAR}` for substitution |
 
 ### `workflows`
 
-Workflow settings.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `directory` | string | `"./workflows"` | Workflow files directory |
-| `hot_reload` | bool | `true` | Auto-reload on changes |
+| Field | Default | Description |
+|-------|---------|-------------|
+| `directory` | `"./workflows"` | Path to workflow YAML files |
+| `hot_reload` | `true` | Reload workflows when files change |
 
 ### `execution`
 
-Execution settings.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `max_concurrent` | int | `10` | Max concurrent executions |
-| `default_timeout` | int | `300` | Default timeout (seconds) |
-| `retry.max_attempts` | int | `3` | Max retry attempts |
-| `retry.backoff_multiplier` | float | `2.0` | Backoff multiplier |
+| Field | Default | Description |
+|-------|---------|-------------|
+| `max_concurrent` | `10` | Max concurrent workflow executions |
+| `default_timeout` | `300` | Default step timeout (seconds) |
+| `retry.max_attempts` | `3` | Default max retry attempts |
+| `retry.backoff_multiplier` | `2.0` | Exponential backoff multiplier |
 
 ### `python_exec`
 
-Python sandbox settings.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `timeout` | int | `30` | Execution timeout (seconds) |
-| `max_memory` | int | `536870912` | Max memory (bytes) |
-| `allowed_imports` | list | See above | Allowed Python imports |
+| Field | Default | Description |
+|-------|---------|-------------|
+| `timeout` | `30` | Code step execution timeout (seconds) |
+| `max_memory` | `536870912` | Memory limit (bytes) — 512 MB default |
+| `allowed_imports` | See sandbox defaults | Extend the module whitelist |
 
 ### `logging`
 
-Logging configuration.
+| Field | Default | Description |
+|-------|---------|-------------|
+| `level` | `"INFO"` | Log level |
+| `format` | `"text"` | `text` for development, `json` for production |
+| `components.*` | `true` | Toggle logging per component |
+| `options.show_params` | `false` | Include tool parameters in logs |
+| `options.show_results` | `false` | Include step outputs in logs |
+| `options.truncate_at` | `1000` | Max characters for any logged value |
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `level` | string | `"INFO"` | Log level |
-| `format` | string | `"text"` | Output format |
-| `components.*` | bool | `true` | Component logging |
-| `options.show_params` | bool | `false` | Show parameters |
-| `options.show_results` | bool | `false` | Show results |
-| `options.truncate_at` | int | `1000` | Truncate long values |
+---
 
-## Environment Variable Substitution
+## Environment variable substitution
 
-Use `${VAR}` syntax for environment variables:
+Use `${VAR}` in config values. Ploston substitutes at startup:
 
 ```yaml
 mcp:
   servers:
     github:
-      command: "npx"
-      args: ["-y", "@modelcontextprotocol/server-github"]
       env:
-        GITHUB_TOKEN: "${GITHUB_TOKEN}"
+        GITHUB_TOKEN: "${GITHUB_TOKEN}"           # error if unset
+        API_KEY: "${API_KEY:-default-value}"       # use default if unset
+        DB_URL: "${DB_URL:?DB_URL must be set}"   # custom error message
 ```
 
-### Syntax Options
+| Syntax | Behaviour |
+|--------|-----------|
+| `${VAR}` | Required — error at startup if unset |
+| `${VAR:-default}` | Optional — use default if unset |
+| `${VAR:?message}` | Required — print message if unset |
 
-| Syntax | Description |
-|--------|-------------|
-| `${VAR}` | Required variable (error if unset) |
-| `${VAR:-default}` | Use default if unset |
-| `${VAR:?message}` | Custom error message if unset |
+---
 
-## Example Configurations
+## Example configs
 
-### Minimal Configuration
+### Minimal (bootstrap-managed, file not required)
 
-```yaml
-workflows:
-  directory: "./workflows"
-```
+When using `ploston bootstrap` + `ploston init --import`, no config file is needed. Config lives in Redis.
 
-### Development Configuration
+### Development (from source)
 
 ```yaml
 workflows:
@@ -278,7 +239,7 @@ logging:
     show_results: true
 ```
 
-### Production Configuration
+### Production (self-hosted)
 
 ```yaml
 workflows:
@@ -295,5 +256,6 @@ logging:
 
 security:
   allowed_hosts:
-    - "api.example.com"
+    - "api.mycompany.com"
+    - "internal.service.local"
 ```

@@ -4,7 +4,7 @@
 
 Public documentation for [Ploston](https://github.com/ostanlabs/ploston) - Deterministic workflow execution for AI agents.
 
-**Live Site:** [https://ostanlabs.netlify.app](https://ostanlabs.netlify.app)
+**Live Site:** [https://docs.ploston.ai](https://docs.ploston.ai)
 
 ---
 
@@ -12,7 +12,7 @@ Public documentation for [Ploston](https://github.com/ostanlabs/ploston) - Deter
 
 | Resource | URL |
 |----------|-----|
-| **Production Docs** | [ostanlabs.netlify.app](https://ostanlabs.netlify.app) |
+| **Production Docs** | [docs.ploston.ai](https://docs.ploston.ai) |
 | **Main Repo** | [github.com/ostanlabs/ploston](https://github.com/ostanlabs/ploston) |
 | **CLI Package** | [pypi.org/project/ploston-cli](https://pypi.org/project/ploston-cli/) |
 | **Core Package** | [pypi.org/project/ploston-core](https://pypi.org/project/ploston-core/) |
@@ -26,7 +26,7 @@ Documentation is automatically deployed via **Netlify** on every push to `main`.
 
 | Trigger | Action |
 |---------|--------|
-| Push to `main` | Production deploy to [ostanlabs.netlify.app](https://ostanlabs.netlify.app) |
+| Push to `main` | Production deploy to [docs.ploston.ai](https://docs.ploston.ai) |
 | Pull Request | Deploy preview at `deploy-preview-{PR#}--ostanlabs.netlify.app` |
 
 ### Build Configuration
